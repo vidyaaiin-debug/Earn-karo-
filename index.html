@@ -1,0 +1,3129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>EarnKaro – Earn Coins & Withdraw</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg: #050A14;
+  --bg2: #0B1120;
+  --bg3: #111827;
+  --card: #0F1A2E;
+  --card2: #162035;
+  --border: #1E2D45;
+  --accent: #00E5A0;
+  --accent2: #0099FF;
+  --accent3: #FF6B35;
+  --gold: #FFB800;
+  --text: #E8F0FE;
+  --text2: #8B9EC7;
+  --text3: #4A5F82;
+  --danger: #FF4444;
+  --success: #00C96F;
+  --font-head: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --r: 16px;
+  --r2: 12px;
+  --shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;overflow-x:hidden;}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* ── PAGE SYSTEM ── */
+.page{display:none;min-height:100vh;padding-bottom:80px;}
+.page.active{display:block;}
+.admin-page{display:none;min-height:100vh;}
+.admin-page.active{display:block;}
+
+/* ── HEADER ── */
+header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(5,10,20,0.95);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  padding:12px 16px;
+  display:flex;align-items:center;gap:12px;
+}
+.logo{
+  display:flex;align-items:center;gap:8px;flex:1;
+}
+.logo-icon{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;
+}
+.logo-name{font-family:var(--font-head);font-size:18px;font-weight:800;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.coin-widget{
+  display:flex;align-items:center;gap:6px;
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:100px;padding:6px 14px;cursor:pointer;
+}
+.coin-widget .coin-icon{font-size:16px;}
+.coin-widget .coin-val{font-family:var(--font-head);font-size:14px;font-weight:700;color:var(--gold);}
+.withdraw-btn{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border:none;border-radius:100px;padding:7px 14px;
+  color:#000;font-family:var(--font-head);font-size:12px;font-weight:700;
+  cursor:pointer;white-space:nowrap;
+}
+.avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent2),var(--accent));
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;cursor:pointer;border:2px solid var(--border);
+  overflow:hidden;
+}
+.avatar img{width:100%;height:100%;object-fit:cover;}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:100;
+  background:rgba(11,17,32,0.97);
+  backdrop-filter:blur(20px);
+  border-top:1px solid var(--border);
+  display:flex;
+}
+.nav-item{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:10px 4px;gap:4px;cursor:pointer;
+  transition:all .2s;color:var(--text3);
+}
+.nav-item.active{color:var(--accent);}
+.nav-item .nav-icon{font-size:22px;transition:.2s;}
+.nav-item.active .nav-icon{transform:translateY(-2px);}
+.nav-item .nav-label{font-size:10px;font-weight:500;}
+
+/* ── CARDS ── */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:16px;
+}
+.card2{
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:var(--r2);padding:14px;
+}
+
+/* ── SECTION TITLE ── */
+.sec-title{
+  font-family:var(--font-head);font-size:20px;font-weight:700;
+  padding:20px 16px 12px;
+}
+.sec-title span{color:var(--accent);}
+
+/* ── BADGE ── */
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  border-radius:100px;padding:3px 10px;font-size:11px;font-weight:600;
+}
+.badge-green{background:rgba(0,229,160,.15);color:var(--accent);}
+.badge-blue{background:rgba(0,153,255,.15);color:var(--accent2);}
+.badge-gold{background:rgba(255,184,0,.15);color:var(--gold);}
+.badge-red{background:rgba(255,68,68,.15);color:var(--danger);}
+.badge-orange{background:rgba(255,107,53,.15);color:var(--accent3);}
+
+/* ── BUTTON ── */
+.btn{
+  border:none;border-radius:var(--r2);padding:12px 20px;
+  font-family:var(--font-head);font-size:14px;font-weight:700;
+  cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px;
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;
+}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,229,160,.3);}
+.btn-outline{
+  background:transparent;border:1px solid var(--border);color:var(--text);
+}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);}
+.btn-danger{background:rgba(255,68,68,.15);color:var(--danger);border:1px solid rgba(255,68,68,.3);}
+.btn-success{background:rgba(0,201,111,.15);color:var(--success);border:1px solid rgba(0,201,111,.3);}
+.btn-full{width:100%;justify-content:center;}
+
+/* ── INPUT ── */
+.input-group{margin-bottom:16px;}
+.input-label{font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:500;}
+.input{
+  width:100%;background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r2);padding:12px 14px;color:var(--text);
+  font-family:var(--font-body);font-size:14px;outline:none;transition:.2s;
+}
+.input:focus{border-color:var(--accent);}
+.input::placeholder{color:var(--text3);}
+select.input{cursor:pointer;}
+
+/* ── STATS ROW ── */
+.stats-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:0 16px;
+}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r2);padding:14px;
+}
+.stat-icon{font-size:24px;margin-bottom:8px;}
+.stat-val{font-family:var(--font-head);font-size:22px;font-weight:800;}
+.stat-label{font-size:11px;color:var(--text2);margin-top:2px;}
+
+/* ── COIN ANIMATION ── */
+.coin-float{
+  position:fixed;pointer-events:none;z-index:999;
+  font-family:var(--font-head);font-size:20px;font-weight:800;
+  color:var(--gold);text-shadow:0 0 10px rgba(255,184,0,.5);
+  animation:floatUp 1.5s ease-out forwards;
+}
+@keyframes floatUp{
+  0%{opacity:1;transform:translateY(0) scale(1);}
+  100%{opacity:0;transform:translateY(-80px) scale(1.3);}
+}
+
+/* ── TOAST ── */
+.toast-container{position:fixed;top:80px;right:16px;z-index:999;display:flex;flex-direction:column;gap:8px;}
+.toast{
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:var(--r2);padding:12px 16px;
+  display:flex;align-items:center;gap:10px;
+  font-size:13px;min-width:220px;
+  animation:slideIn .3s ease;box-shadow:var(--shadow);
+}
+.toast.success{border-left:3px solid var(--success);}
+.toast.error{border-left:3px solid var(--danger);}
+.toast.info{border-left:3px solid var(--accent2);}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+
+/* ── SKELETON ── */
+.skeleton{
+  background:linear-gradient(90deg,var(--card) 25%,var(--card2) 50%,var(--card) 75%);
+  background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px;
+}
+@keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+
+/* ── MODAL ── */
+.modal-bg{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.8);backdrop-filter:blur(10px);
+  display:none;align-items:flex-end;justify-content:center;
+}
+.modal-bg.open{display:flex;}
+.modal{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:24px 24px 0 0;padding:24px 20px;
+  width:100%;max-width:500px;max-height:90vh;overflow-y:auto;
+}
+.modal-handle{
+  width:40px;height:4px;background:var(--border);
+  border-radius:2px;margin:0 auto 20px;
+}
+.modal-title{font-family:var(--font-head);font-size:20px;font-weight:700;margin-bottom:16px;}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   HOME PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.hero-section{
+  padding:20px 16px;
+  background:linear-gradient(180deg,rgba(0,229,160,.05) 0%,transparent 100%);
+}
+.hero-greeting{font-size:13px;color:var(--text2);}
+.hero-name{font-family:var(--font-head);font-size:26px;font-weight:800;}
+.hero-name span{color:var(--accent);}
+.hero-balance{
+  background:linear-gradient(135deg,rgba(0,229,160,.1),rgba(0,153,255,.1));
+  border:1px solid rgba(0,229,160,.2);border-radius:var(--r);
+  padding:20px;margin-top:16px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.balance-label{font-size:12px;color:var(--text2);}
+.balance-val{font-family:var(--font-head);font-size:36px;font-weight:800;color:var(--gold);}
+.balance-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+.earn-now-btn{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border:none;border-radius:12px;padding:12px 20px;
+  color:#000;font-family:var(--font-head);font-size:13px;font-weight:700;
+  cursor:pointer;text-align:center;white-space:nowrap;
+}
+
+.quick-actions{padding:0 16px;margin-top:20px;}
+.quick-actions-title{font-size:13px;color:var(--text2);margin-bottom:12px;font-weight:500;}
+.quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.quick-item{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r2);padding:14px 8px;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  cursor:pointer;transition:all .2s;
+}
+.quick-item:hover{border-color:var(--accent);transform:translateY(-2px);}
+.quick-item .qi-icon{font-size:24px;}
+.quick-item .qi-label{font-size:10px;color:var(--text2);text-align:center;font-weight:500;}
+
+.daily-streak{
+  margin:20px 16px 0;
+  background:linear-gradient(135deg,rgba(255,184,0,.1),rgba(255,107,53,.1));
+  border:1px solid rgba(255,184,0,.2);border-radius:var(--r);padding:16px;
+  display:flex;align-items:center;gap:14px;
+}
+.streak-fire{font-size:36px;}
+.streak-info{}
+.streak-title{font-family:var(--font-head);font-size:15px;font-weight:700;color:var(--gold);}
+.streak-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+.streak-claim{
+  margin-left:auto;background:var(--gold);color:#000;
+  border:none;border-radius:8px;padding:8px 14px;
+  font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-head);
+  white-space:nowrap;
+}
+
+.activity-list{padding:0 16px;}
+.activity-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 0;border-bottom:1px solid rgba(30,45,69,.5);
+}
+.activity-item:last-child{border-bottom:none;}
+.activity-icon{
+  width:40px;height:40px;border-radius:12px;
+  background:var(--card2);display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.activity-info{flex:1;}
+.activity-title{font-size:13px;font-weight:500;}
+.activity-time{font-size:11px;color:var(--text3);margin-top:2px;}
+.activity-amount{font-family:var(--font-head);font-size:14px;font-weight:700;}
+.activity-amount.plus{color:var(--accent);}
+.activity-amount.minus{color:var(--danger);}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ADS PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.ads-banner{
+  margin:16px;background:linear-gradient(135deg,#1a0533,#0a1a3a);
+  border:1px solid rgba(0,229,160,.2);border-radius:var(--r);padding:20px;
+  display:flex;align-items:center;gap:16px;
+}
+.ads-banner-icon{font-size:48px;}
+.ads-banner-info{}
+.ads-banner-title{font-family:var(--font-head);font-size:17px;font-weight:700;}
+.ads-banner-sub{font-size:12px;color:var(--text2);margin-top:4px;}
+
+.ad-card{
+  margin:0 16px 12px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);overflow:hidden;cursor:pointer;
+  transition:all .2s;
+}
+.ad-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+.ad-thumb{
+  width:100%;height:160px;object-fit:cover;
+  background:linear-gradient(135deg,var(--card2),var(--bg3));
+  display:flex;align-items:center;justify-content:center;font-size:48px;
+}
+.ad-info{padding:14px;}
+.ad-brand{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;}
+.ad-title{font-family:var(--font-head);font-size:16px;font-weight:700;margin-top:4px;}
+.ad-meta{display:flex;align-items:center;gap:10px;margin-top:10px;}
+.ad-reward{
+  display:flex;align-items:center;gap:4px;
+  color:var(--gold);font-family:var(--font-head);font-size:14px;font-weight:700;
+}
+.ad-duration{font-size:12px;color:var(--text2);}
+
+/* AD PLAYER */
+.ad-player-modal .modal{border-radius:24px;margin:20px;max-width:calc(100% - 40px);}
+.ad-screen{
+  background:#000;border-radius:12px;height:200px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:64px;margin-bottom:16px;position:relative;overflow:hidden;
+}
+.ad-screen-overlay{
+  position:absolute;inset:0;
+  background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;
+}
+.ad-timer-ring{
+  width:60px;height:60px;position:relative;
+}
+.ad-timer-text{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-head);font-size:18px;font-weight:800;color:#fff;
+}
+.progress-bar{
+  width:100%;height:6px;background:var(--border);border-radius:3px;margin-bottom:16px;overflow:hidden;
+}
+.progress-fill{
+  height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));
+  border-radius:3px;transition:width .1s linear;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   GAMES PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.game-filter{
+  display:flex;gap:8px;padding:0 16px;overflow-x:auto;
+  scrollbar-width:none;-webkit-scrollbar:none;margin-bottom:4px;
+}
+.game-filter::-webkit-scrollbar{display:none;}
+.filter-chip{
+  border:1px solid var(--border);background:var(--card);
+  border-radius:100px;padding:6px 16px;font-size:12px;font-weight:500;
+  white-space:nowrap;cursor:pointer;transition:.2s;color:var(--text2);
+}
+.filter-chip.active{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700;}
+
+.games-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:0 16px;}
+.game-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .2s;
+}
+.game-card:hover{border-color:var(--accent2);transform:translateY(-2px);}
+.game-icon-area{
+  height:120px;display:flex;align-items:center;justify-content:center;font-size:56px;
+  background:linear-gradient(135deg,var(--card2),var(--bg3));
+}
+.game-info{padding:12px;}
+.game-name{font-family:var(--font-head);font-size:14px;font-weight:700;}
+.game-cat{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+.game-reward{
+  display:flex;align-items:center;gap:4px;margin-top:8px;
+  font-size:12px;color:var(--gold);font-weight:600;
+}
+
+/* GAME LEVELS MODAL */
+.level-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px;background:var(--bg3);border-radius:var(--r2);margin-bottom:8px;
+}
+.level-num{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent2),var(--accent));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-head);font-size:14px;font-weight:800;color:#fff;
+  flex-shrink:0;
+}
+.level-info{flex:1;}
+.level-name{font-size:13px;font-weight:600;}
+.level-time{font-size:11px;color:var(--text2);}
+.level-coins{color:var(--gold);font-family:var(--font-head);font-size:14px;font-weight:700;}
+
+/* GAME PLAY SCREEN */
+.game-play-area{
+  background:#000;border-radius:12px;height:250px;margin-bottom:16px;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;
+}
+.game-play-icon{font-size:64px;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.1);};}
+.game-play-timer{
+  font-family:var(--font-head);font-size:32px;font-weight:800;
+  color:var(--accent);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SURVEYS PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.survey-card{
+  margin:0 16px 12px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:16px;cursor:pointer;transition:all .2s;
+}
+.survey-card:hover{border-color:var(--gold);transform:translateY(-2px);}
+.survey-top{display:flex;align-items:flex-start;gap:14px;}
+.survey-icon-box{
+  width:50px;height:50px;border-radius:14px;
+  background:var(--card2);display:flex;align-items:center;justify-content:center;
+  font-size:24px;flex-shrink:0;
+}
+.survey-info{flex:1;}
+.survey-title{font-family:var(--font-head);font-size:15px;font-weight:700;}
+.survey-cat{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+.survey-desc{font-size:12px;color:var(--text2);margin-top:6px;line-height:1.5;}
+.survey-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:12px;}
+.survey-reward{display:flex;align-items:center;gap:6px;}
+.survey-coins{font-family:var(--font-head);font-size:16px;font-weight:700;color:var(--gold);}
+.survey-time{font-size:11px;color:var(--text2);display:flex;align-items:center;gap:4px;}
+.done-badge{
+  display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;
+  color:var(--success);background:rgba(0,201,111,.1);
+  border-radius:100px;padding:4px 10px;
+}
+
+/* SURVEY QUESTION */
+.question-card{
+  background:var(--card2);border-radius:var(--r2);padding:16px;margin-bottom:12px;
+}
+.question-text{font-size:14px;font-weight:500;margin-bottom:12px;line-height:1.5;}
+.option-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;border-radius:var(--r2);
+  border:1px solid var(--border);margin-bottom:8px;cursor:pointer;transition:.2s;
+}
+.option-item:hover{border-color:var(--accent);}
+.option-item.selected{border-color:var(--accent);background:rgba(0,229,160,.1);}
+.option-radio{
+  width:18px;height:18px;border-radius:50%;border:2px solid var(--border);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.option-item.selected .option-radio{border-color:var(--accent);}
+.option-radio-inner{width:10px;height:10px;border-radius:50%;background:var(--accent);display:none;}
+.option-item.selected .option-radio-inner{display:block;}
+.rating-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+.rating-btn{
+  width:40px;height:40px;border-radius:50%;border:2px solid var(--border);
+  background:var(--bg3);color:var(--text);font-weight:700;cursor:pointer;
+  transition:.2s;display:flex;align-items:center;justify-content:center;
+}
+.rating-btn.selected{border-color:var(--accent);background:var(--accent);color:#000;}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   WALLET PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.wallet-hero{
+  margin:16px;padding:24px;
+  background:linear-gradient(135deg,rgba(0,229,160,.15),rgba(0,153,255,.1));
+  border:1px solid rgba(0,229,160,.2);border-radius:20px;text-align:center;
+}
+.wallet-bal-label{font-size:12px;color:var(--text2);letter-spacing:1px;text-transform:uppercase;}
+.wallet-bal{font-family:var(--font-head);font-size:48px;font-weight:800;color:var(--gold);line-height:1;}
+.wallet-bal-inr{font-size:14px;color:var(--text2);margin-top:6px;}
+.wallet-actions{display:flex;gap:10px;margin-top:16px;}
+.wallet-actions .btn{flex:1;justify-content:center;}
+
+.withdraw-tabs{display:flex;margin:0 16px 16px;border-radius:12px;background:var(--card);padding:4px;gap:4px;}
+.wtab{
+  flex:1;padding:8px;text-align:center;font-size:12px;font-weight:600;
+  border-radius:8px;cursor:pointer;transition:.2s;color:var(--text2);
+}
+.wtab.active{background:var(--accent);color:#000;}
+
+.withdraw-method{
+  border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:10px;cursor:pointer;
+  transition:.2s;
+}
+.withdraw-method:hover,.withdraw-method.active{border-color:var(--accent);}
+.withdraw-method.active{background:rgba(0,229,160,.05);}
+.wm-top{display:flex;align-items:center;gap:12px;}
+.wm-icon{font-size:28px;}
+.wm-info{}
+.wm-name{font-size:14px;font-weight:600;}
+.wm-desc{font-size:11px;color:var(--text2);margin-top:2px;}
+.wm-radio{
+  margin-left:auto;width:20px;height:20px;border-radius:50%;
+  border:2px solid var(--border);display:flex;align-items:center;justify-content:center;
+}
+.withdraw-method.active .wm-radio{border-color:var(--accent);}
+.wm-radio-dot{width:12px;height:12px;border-radius:50%;background:var(--accent);display:none;}
+.withdraw-method.active .wm-radio-dot{display:block;}
+
+.history-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 0;border-bottom:1px solid rgba(30,45,69,.5);
+}
+.history-item:last-child{border-bottom:none;}
+.hist-icon{
+  width:40px;height:40px;border-radius:12px;
+  background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:16px;
+}
+.hist-info{flex:1;}
+.hist-desc{font-size:13px;font-weight:500;}
+.hist-date{font-size:11px;color:var(--text3);margin-top:2px;}
+.hist-amount{font-family:var(--font-head);font-size:14px;font-weight:700;}
+.hist-status{font-size:10px;font-weight:600;margin-top:3px;text-align:right;}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   PROFILE PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.profile-hero{
+  padding:24px 16px;text-align:center;
+  background:linear-gradient(180deg,rgba(0,153,255,.08) 0%,transparent 100%);
+}
+.profile-avatar{
+  width:80px;height:80px;border-radius:50%;margin:0 auto 12px;
+  background:linear-gradient(135deg,var(--accent2),var(--accent));
+  display:flex;align-items:center;justify-content:center;font-size:36px;
+  border:3px solid var(--accent);
+}
+.profile-name{font-family:var(--font-head);font-size:22px;font-weight:800;}
+.profile-email{font-size:13px;color:var(--text2);margin-top:4px;}
+.profile-badges{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap;}
+
+.referral-card{
+  margin:0 16px;
+  background:linear-gradient(135deg,rgba(255,184,0,.1),rgba(255,107,53,.1));
+  border:1px solid rgba(255,184,0,.2);border-radius:var(--r);padding:16px;
+}
+.referral-title{font-family:var(--font-head);font-size:15px;font-weight:700;color:var(--gold);}
+.referral-sub{font-size:12px;color:var(--text2);margin-top:4px;margin-bottom:12px;}
+.referral-code-box{
+  background:var(--bg3);border:1px dashed var(--gold);
+  border-radius:var(--r2);padding:10px 14px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.referral-code{font-family:var(--font-head);font-size:18px;font-weight:800;color:var(--gold);letter-spacing:2px;}
+.copy-btn{font-size:18px;cursor:pointer;padding:4px;}
+
+.profile-menu{padding:0 16px;margin-top:16px;}
+.menu-item{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 0;border-bottom:1px solid rgba(30,45,69,.5);cursor:pointer;
+  transition:.2s;
+}
+.menu-item:hover .menu-icon{color:var(--accent);}
+.menu-item:last-child{border-bottom:none;}
+.menu-icon{font-size:20px;color:var(--text2);transition:.2s;}
+.menu-label{font-size:14px;font-weight:500;flex:1;}
+.menu-arrow{color:var(--text3);}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   LOGIN PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#page-login{
+  min-height:100vh;display:none;
+  background:radial-gradient(ellipse at 50% 0%,rgba(0,229,160,.1) 0%,transparent 60%);
+  flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;
+}
+#page-login.active{display:flex;}
+.login-logo{
+  width:80px;height:80px;border-radius:24px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;font-size:40px;
+  margin-bottom:24px;box-shadow:0 0 40px rgba(0,229,160,.3);
+}
+.login-title{font-family:var(--font-head);font-size:32px;font-weight:800;text-align:center;}
+.login-sub{font-size:14px;color:var(--text2);text-align:center;margin-top:8px;margin-bottom:40px;}
+.login-perks{display:flex;flex-direction:column;gap:12px;margin-bottom:40px;width:100%;max-width:340px;}
+.perk-item{
+  display:flex;align-items:center;gap:12px;
+  background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 16px;
+}
+.perk-icon{font-size:24px;}
+.perk-text{font-size:13px;color:var(--text2);}
+.perk-text strong{color:var(--text);}
+.google-btn{
+  width:100%;max-width:340px;background:#fff;border:none;border-radius:14px;
+  padding:14px 20px;display:flex;align-items:center;justify-content:center;gap:12px;
+  font-size:15px;font-weight:700;color:#1a1a1a;cursor:pointer;transition:.2s;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);
+}
+.google-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.4);}
+.google-btn img{width:20px;height:20px;}
+.admin-link{
+  margin-top:20px;font-size:12px;color:var(--text3);cursor:pointer;
+  text-decoration:underline;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ADMIN PANEL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.admin-layout{display:flex;min-height:100vh;}
+.admin-sidebar{
+  width:240px;background:var(--bg2);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;
+  transition:.3s;z-index:50;
+}
+.admin-sidebar.collapsed{width:64px;}
+.admin-sidebar.mobile-hidden{transform:translateX(-100%);}
+.sidebar-header{
+  padding:20px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+}
+.sidebar-logo-icon{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;
+}
+.sidebar-logo-text{font-family:var(--font-head);font-size:16px;font-weight:800;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap;
+}
+.sidebar-nav{flex:1;padding:12px 8px;overflow-y:auto;}
+.sidebar-section{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;
+  padding:8px 8px 4px;font-weight:600;}
+.nav-link{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 12px;border-radius:10px;cursor:pointer;
+  transition:.2s;color:var(--text2);margin-bottom:2px;white-space:nowrap;overflow:hidden;
+}
+.nav-link:hover{background:var(--card);color:var(--text);}
+.nav-link.active{background:rgba(0,229,160,.1);color:var(--accent);}
+.nav-link .nl-icon{font-size:18px;flex-shrink:0;}
+.nav-link .nl-text{font-size:13px;font-weight:500;}
+.admin-sidebar.collapsed .sidebar-section,
+.admin-sidebar.collapsed .nl-text,
+.admin-sidebar.collapsed .sidebar-logo-text{display:none;}
+.admin-main{
+  flex:1;margin-left:240px;display:flex;flex-direction:column;transition:.3s;
+}
+.admin-sidebar.collapsed ~ .admin-main{margin-left:64px;}
+.admin-header{
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:16px 24px;display:flex;align-items:center;gap:16px;
+  position:sticky;top:0;z-index:40;
+}
+.collapse-btn{
+  background:var(--card);border:1px solid var(--border);border-radius:8px;
+  width:32px;height:32px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:16px;flex-shrink:0;
+}
+.admin-page-title{font-family:var(--font-head);font-size:18px;font-weight:700;flex:1;}
+.admin-content{padding:24px;flex:1;}
+
+/* Admin Stats */
+.admin-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;}
+.admin-stat{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px;
+}
+.as-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.as-icon{
+  width:44px;height:44px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+}
+.as-change{font-size:12px;font-weight:600;}
+.as-change.up{color:var(--success);}
+.as-val{font-family:var(--font-head);font-size:28px;font-weight:800;}
+.as-label{font-size:12px;color:var(--text2);margin-top:4px;}
+
+/* Data Table */
+.data-table-wrapper{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.table-header{
+  display:flex;align-items:center;gap:12px;padding:16px 20px;
+  border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px;
+}
+.table-title{font-family:var(--font-head);font-size:16px;font-weight:700;flex:1;}
+.search-input{
+  background:var(--bg3);border:1px solid var(--border);border-radius:8px;
+  padding:8px 12px;color:var(--text);font-size:13px;outline:none;width:200px;
+}
+.search-input:focus{border-color:var(--accent);}
+.data-table{width:100%;border-collapse:collapse;font-size:13px;}
+.data-table th{
+  padding:12px 16px;text-align:left;font-size:11px;font-weight:600;
+  color:var(--text2);text-transform:uppercase;letter-spacing:.5px;
+  border-bottom:1px solid var(--border);background:var(--bg3);
+}
+.data-table td{padding:12px 16px;border-bottom:1px solid rgba(30,45,69,.4);}
+.data-table tr:last-child td{border-bottom:none;}
+.data-table tr:hover td{background:rgba(255,255,255,.02);}
+.user-cell{display:flex;align-items:center;gap:10px;}
+.user-cell-avatar{
+  width:32px;height:32px;border-radius:8px;
+  background:linear-gradient(135deg,var(--accent2),var(--accent));
+  display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;
+}
+.table-actions{display:flex;gap:6px;}
+.tbl-btn{
+  border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;
+}
+.tbl-btn-blue{background:rgba(0,153,255,.15);color:var(--accent2);}
+.tbl-btn-red{background:rgba(255,68,68,.15);color:var(--danger);}
+.tbl-btn-green{background:rgba(0,201,111,.15);color:var(--success);}
+.tbl-btn-yellow{background:rgba(255,184,0,.15);color:var(--gold);}
+.pagination{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;border-top:1px solid var(--border);font-size:12px;color:var(--text2);
+}
+.page-btns{display:flex;gap:4px;}
+.page-btn{
+  width:30px;height:30px;border-radius:6px;border:1px solid var(--border);
+  background:transparent;color:var(--text2);cursor:pointer;font-size:12px;
+}
+.page-btn.active{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700;}
+
+/* Chart placeholder */
+.chart-area{
+  height:200px;background:var(--bg3);border-radius:var(--r2);
+  display:flex;align-items:flex-end;gap:6px;padding:16px;
+  overflow:hidden;
+}
+.chart-bar{
+  flex:1;border-radius:4px 4px 0 0;
+  background:linear-gradient(180deg,var(--accent),var(--accent2));
+  transition:.3s;
+}
+
+/* Coin settings */
+.setting-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 0;border-bottom:1px solid rgba(30,45,69,.5);
+}
+.setting-row:last-child{border-bottom:none;}
+.setting-info{}
+.setting-name{font-size:14px;font-weight:500;}
+.setting-desc{font-size:11px;color:var(--text2);margin-top:2px;}
+.setting-input{
+  background:var(--bg3);border:1px solid var(--border);border-radius:8px;
+  padding:6px 12px;color:var(--text);font-size:14px;font-weight:600;
+  width:100px;text-align:center;outline:none;
+}
+.setting-input:focus{border-color:var(--accent);}
+
+/* Toggle */
+.toggle{
+  position:relative;width:44px;height:24px;
+  background:var(--border);border-radius:100px;cursor:pointer;transition:.2s;
+}
+.toggle.on{background:var(--accent);}
+.toggle-dot{
+  position:absolute;top:2px;left:2px;
+  width:20px;height:20px;border-radius:50%;background:#fff;
+  transition:.2s;
+}
+.toggle.on .toggle-dot{left:22px;}
+
+/* Form */
+.form-section{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px;}
+.form-section-title{font-family:var(--font-head);font-size:15px;font-weight:700;margin-bottom:16px;}
+
+/* Overlay */
+.sidebar-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:49;display:none;
+}
+.sidebar-overlay.show{display:block;}
+
+/* Admin login */
+.admin-login{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:24px;
+}
+.admin-login-card{
+  background:var(--card);border:1px solid var(--border);border-radius:20px;
+  padding:32px 28px;width:100%;max-width:380px;
+}
+.admin-login-icon{font-size:40px;text-align:center;margin-bottom:8px;}
+.admin-login-title{font-family:var(--font-head);font-size:22px;font-weight:800;text-align:center;margin-bottom:4px;}
+.admin-login-sub{font-size:13px;color:var(--text2);text-align:center;margin-bottom:24px;}
+
+/* Withdrawal detail */
+.wd-detail{background:var(--bg3);border-radius:var(--r2);padding:14px;margin-bottom:12px;}
+.wd-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;}
+.wd-row-label{color:var(--text2);}
+.wd-row-val{font-weight:500;}
+
+/* Responsive */
+@media(max-width:768px){
+  .admin-sidebar{transform:translateX(-100%);}
+  .admin-sidebar.mobile-open{transform:translateX(0);}
+  .admin-main{margin-left:0!important;}
+  .admin-stats{grid-template-columns:repeat(2,1fr);}
+  .data-table{font-size:12px;}
+  .data-table th,.data-table td{padding:10px 12px;}
+  .search-input{width:140px;}
+}
+@media(max-width:400px){
+  .admin-stats{grid-template-columns:1fr 1fr;}
+  .games-grid{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     LOGIN PAGE
+════════════════════════════════════════════ -->
+<!-- LOADING SCREEN -->
+<div id="loading-screen" style="position:fixed;inset:0;background:#050A14;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;">
+  <div style="font-size:48px;margin-bottom:16px;">💰</div>
+  <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;background:linear-gradient(90deg,#00E5A0,#0099FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">EarnKaro</div>
+  <div style="margin-top:20px;width:40px;height:40px;border:3px solid #1E2D45;border-top-color:#00E5A0;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+  <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+</div>
+
+<div id="page-login" class="page active">
+  <div class="login-logo">💰</div>
+  <h1 class="login-title">Welcome to<br/><span style="color:var(--accent)">EarnKaro</span></h1>
+  <p class="login-sub">Earn coins by watching ads, playing games & completing surveys</p>
+  <div class="login-perks">
+    <div class="perk-item">
+      <span class="perk-icon">📺</span>
+      <span class="perk-text"><strong>Watch Ads</strong> – Earn up to 15 coins per ad</span>
+    </div>
+    <div class="perk-item">
+      <span class="perk-icon">🎮</span>
+      <span class="perk-text"><strong>Play Games</strong> – Complete levels for big rewards</span>
+    </div>
+    <div class="perk-item">
+      <span class="perk-icon">📋</span>
+      <span class="perk-text"><strong>Take Surveys</strong> – Share opinions, earn coins</span>
+    </div>
+    <div class="perk-item">
+      <span class="perk-icon">💸</span>
+      <span class="perk-text"><strong>Withdraw</strong> – UPI, Bank Transfer or Redeem Code</span>
+    </div>
+  </div>
+  <button class="google-btn" onclick="doLogin()">
+    <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+    Continue with Google
+  </button>
+  <p class="admin-link" onclick="showAdminLogin()">Admin Login →</p>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     USER APP
+════════════════════════════════════════════ -->
+<div id="user-app" style="display:none;">
+
+  <!-- HEADER -->
+  <header id="main-header">
+    <div class="logo">
+      <div class="logo-icon">💰</div>
+      <span class="logo-name">EarnKaro</span>
+    </div>
+    <div class="coin-widget" onclick="navTo('wallet')">
+      <span class="coin-icon">🪙</span>
+      <span class="coin-val" id="header-coins">1,250</span>
+    </div>
+    <button class="withdraw-btn" onclick="openWithdrawModal()">Withdraw</button>
+    <div class="avatar" onclick="navTo('profile')">👤</div>
+  </header>
+
+  <!-- PAGES -->
+
+  <!-- HOME -->
+  <div id="page-home" class="page active">
+    <div class="hero-section">
+      <p class="hero-greeting">Good morning 👋</p>
+      <h1 class="hero-name">Hello, <span id="user-display-name">Rahul</span>!</h1>
+      <div class="hero-balance">
+        <div>
+          <div class="balance-label">Total Coins</div>
+          <div class="balance-val" id="home-coins">1,250</div>
+          <div class="balance-sub">≈ ₹12.50 | Today earned: +85 coins</div>
+        </div>
+        <button class="earn-now-btn" onclick="navTo('ads')">Earn Now →</button>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">🪙</div>
+        <div class="stat-val" style="color:var(--gold)">1,250</div>
+        <div class="stat-label">Current Balance</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📈</div>
+        <div class="stat-val" style="color:var(--accent)">4,890</div>
+        <div class="stat-label">Total Earned</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-val" style="color:var(--accent2)">47</div>
+        <div class="stat-label">Tasks Done</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">💸</div>
+        <div class="stat-val" style="color:var(--accent3)">₹38</div>
+        <div class="stat-label">Withdrawn</div>
+      </div>
+    </div>
+
+    <div class="quick-actions">
+      <p class="quick-actions-title">Quick Earn</p>
+      <div class="quick-grid">
+        <div class="quick-item" onclick="navTo('ads')">
+          <span class="qi-icon">📺</span>
+          <span class="qi-label">Watch Ads</span>
+        </div>
+        <div class="quick-item" onclick="navTo('games')">
+          <span class="qi-icon">🎮</span>
+          <span class="qi-label">Play Games</span>
+        </div>
+        <div class="quick-item" onclick="navTo('surveys')">
+          <span class="qi-icon">📋</span>
+          <span class="qi-label">Surveys</span>
+        </div>
+        <div class="quick-item" onclick="navTo('wallet')">
+          <span class="qi-icon">💰</span>
+          <span class="qi-label">Wallet</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="daily-streak">
+      <span class="streak-fire">🔥</span>
+      <div class="streak-info">
+        <div class="streak-title">Day 7 Streak!</div>
+        <div class="streak-sub">Claim your daily bonus — +10 coins</div>
+      </div>
+      <button class="streak-claim" onclick="claimDaily()">Claim!</button>
+    </div>
+
+    <div class="sec-title">Recent <span>Activity</span></div>
+    <div class="activity-list">
+      <div class="activity-item">
+        <div class="activity-icon">📺</div>
+        <div class="activity-info">
+          <div class="activity-title">Watched Samsung Ad</div>
+          <div class="activity-time">2 minutes ago</div>
+        </div>
+        <div class="activity-amount plus">+15</div>
+      </div>
+      <div class="activity-item">
+        <div class="activity-icon">📋</div>
+        <div class="activity-info">
+          <div class="activity-title">Completed Food Survey</div>
+          <div class="activity-time">1 hour ago</div>
+        </div>
+        <div class="activity-amount plus">+50</div>
+      </div>
+      <div class="activity-item">
+        <div class="activity-icon">🎮</div>
+        <div class="activity-info">
+          <div class="activity-title">Played Fruit Ninja – Level 2</div>
+          <div class="activity-time">3 hours ago</div>
+        </div>
+        <div class="activity-amount plus">+20</div>
+      </div>
+      <div class="activity-item">
+        <div class="activity-icon">💸</div>
+        <div class="activity-info">
+          <div class="activity-title">Withdrawal – UPI</div>
+          <div class="activity-time">Yesterday</div>
+        </div>
+        <div class="activity-amount minus">-1000</div>
+      </div>
+      <div class="activity-item">
+        <div class="activity-icon">🔗</div>
+        <div class="activity-info">
+          <div class="activity-title">Referral Bonus</div>
+          <div class="activity-time">2 days ago</div>
+        </div>
+        <div class="activity-amount plus">+50</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADS -->
+  <div id="page-ads" class="page">
+    <div class="ads-banner">
+      <span class="ads-banner-icon">📺</span>
+      <div class="ads-banner-info">
+        <div class="ads-banner-title">Watch & Earn!</div>
+        <div class="ads-banner-sub">Watch ads to earn coins instantly. Each ad = 15 coins!</div>
+      </div>
+    </div>
+
+    <div class="sec-title">Available <span>Ads</span></div>
+
+    <div class="ad-card" onclick="openAdPlayer(this)" data-emoji="📱" data-brand="Samsung" data-title="Galaxy S24 Ultra – Camera Like No Other" data-coins="15" data-duration="30">
+      <div class="ad-thumb" style="background:linear-gradient(135deg,#1a3a5c,#0d2137)">📱</div>
+      <div class="ad-info">
+        <div class="ad-brand">Samsung</div>
+        <div class="ad-title">Galaxy S24 Ultra – Camera Like No Other</div>
+        <div class="ad-meta">
+          <div class="ad-reward">🪙 15 coins</div>
+          <div class="ad-duration">⏱ 30 sec</div>
+          <div class="badge badge-green">Available</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ad-card" onclick="openAdPlayer(this)" data-emoji="🛒" data-brand="Flipkart" data-title="Big Billion Days – Deals Up to 80% Off" data-coins="15" data-duration="30">
+      <div class="ad-thumb" style="background:linear-gradient(135deg,#2d1a5c,#1a0d3a)">🛒</div>
+      <div class="ad-info">
+        <div class="ad-brand">Flipkart</div>
+        <div class="ad-title">Big Billion Days – Deals Up to 80% Off</div>
+        <div class="ad-meta">
+          <div class="ad-reward">🪙 15 coins</div>
+          <div class="ad-duration">⏱ 30 sec</div>
+          <div class="badge badge-green">Available</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ad-card" style="opacity:.6">
+      <div class="ad-thumb" style="background:linear-gradient(135deg,#1a2a1a,#0d1a0d)">🍔</div>
+      <div class="ad-info">
+        <div class="ad-brand">Zomato</div>
+        <div class="ad-title">Order Food, Earn Coins – Zomato Gold</div>
+        <div class="ad-meta">
+          <div class="ad-reward">🪙 15 coins</div>
+          <div class="ad-duration">⏱ 30 sec</div>
+          <div class="badge badge-red">Watched Today</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ad-card" onclick="openAdPlayer(this)" data-emoji="🏦" data-brand="HDFC Bank" data-title="HDFC Smart Loan – Instant Approval" data-coins="20" data-duration="45">
+      <div class="ad-thumb" style="background:linear-gradient(135deg,#1a3a1a,#0d2a0d)">🏦</div>
+      <div class="ad-info">
+        <div class="ad-brand">HDFC Bank</div>
+        <div class="ad-title">HDFC Smart Loan – Instant Approval</div>
+        <div class="ad-meta">
+          <div class="ad-reward">🪙 20 coins</div>
+          <div class="ad-duration">⏱ 45 sec</div>
+          <div class="badge badge-gold">Bonus</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAMES -->
+  <div id="page-games" class="page">
+    <div class="sec-title">Play <span>Games</span></div>
+    <div class="game-filter">
+      <div class="filter-chip active" onclick="setFilter(this,'All')">All</div>
+      <div class="filter-chip" onclick="setFilter(this,'Action')">Action</div>
+      <div class="filter-chip" onclick="setFilter(this,'Puzzle')">Puzzle</div>
+      <div class="filter-chip" onclick="setFilter(this,'Arcade')">Arcade</div>
+      <div class="filter-chip" onclick="setFilter(this,'Strategy')">Strategy</div>
+    </div>
+    <br/>
+    <div class="games-grid">
+      <div class="game-card" onclick="openGameModal('Fruit Ninja','🍉','Arcade','Slice fruits, avoid bombs!',['Level 1: 2 min → 10 coins','Level 2: 5 min → 20 coins','Level 3: 10 min → 40 coins'])">
+        <div class="game-icon-area">🍉</div>
+        <div class="game-info">
+          <div class="game-name">Fruit Ninja</div>
+          <div class="game-cat">Arcade</div>
+          <div class="game-reward">🪙 Up to 40 coins</div>
+        </div>
+      </div>
+      <div class="game-card" onclick="openGameModal('Temple Run','🏃','Action','Run and collect coins!',['Level 1: 3 min → 15 coins','Level 2: 7 min → 30 coins','Level 3: 15 min → 60 coins'])">
+        <div class="game-icon-area">🏃</div>
+        <div class="game-info">
+          <div class="game-name">Temple Run</div>
+          <div class="game-cat">Action</div>
+          <div class="game-reward">🪙 Up to 60 coins</div>
+        </div>
+      </div>
+      <div class="game-card" onclick="openGameModal('2048','🔢','Puzzle','Merge tiles to 2048!',['Level 1: 2 min → 10 coins','Level 2: 5 min → 25 coins','Level 3: 10 min → 50 coins'])">
+        <div class="game-icon-area">🔢</div>
+        <div class="game-info">
+          <div class="game-name">2048</div>
+          <div class="game-cat">Puzzle</div>
+          <div class="game-reward">🪙 Up to 50 coins</div>
+        </div>
+      </div>
+      <div class="game-card" onclick="openGameModal('Chess','♟️','Strategy','Beat the AI opponent!',['Level 1: 5 min → 20 coins','Level 2: 10 min → 45 coins','Level 3: 20 min → 90 coins'])">
+        <div class="game-icon-area">♟️</div>
+        <div class="game-info">
+          <div class="game-name">Chess</div>
+          <div class="game-cat">Strategy</div>
+          <div class="game-reward">🪙 Up to 90 coins</div>
+        </div>
+      </div>
+      <div class="game-card" onclick="openGameModal('Ludo King','🎲','Board','Classic board fun!',['Level 1: 5 min → 15 coins','Level 2: 10 min → 35 coins'])">
+        <div class="game-icon-area">🎲</div>
+        <div class="game-info">
+          <div class="game-name">Ludo King</div>
+          <div class="game-cat">Board</div>
+          <div class="game-reward">🪙 Up to 35 coins</div>
+        </div>
+      </div>
+      <div class="game-card" onclick="openGameModal('Car Race','🏎️','Racing','Fast and furious!',['Level 1: 3 min → 12 coins','Level 2: 7 min → 28 coins'])">
+        <div class="game-icon-area">🏎️</div>
+        <div class="game-info">
+          <div class="game-name">Car Race</div>
+          <div class="game-cat">Racing</div>
+          <div class="game-reward">🪙 Up to 28 coins</div>
+        </div>
+      </div>
+    </div>
+    <br/>
+  </div>
+
+  <!-- SURVEYS -->
+  <div id="page-surveys" class="page">
+    <div class="sec-title">Complete <span>Surveys</span></div>
+
+    <div class="survey-card" onclick="openSurvey('food')">
+      <div class="survey-top">
+        <div class="survey-icon-box">🍕</div>
+        <div class="survey-info">
+          <div class="survey-title">Food Preferences Survey</div>
+          <div class="survey-cat">Lifestyle</div>
+          <div class="survey-desc">Tell us about your food habits and favorite cuisines for personalized recommendations.</div>
+        </div>
+      </div>
+      <div class="survey-bottom">
+        <div class="survey-reward">
+          <span>🪙</span><span class="survey-coins">50</span>
+        </div>
+        <div class="survey-time">⏱ 5 min</div>
+      </div>
+    </div>
+
+    <div class="survey-card" onclick="openSurvey('tech')">
+      <div class="survey-top">
+        <div class="survey-icon-box">📱</div>
+        <div class="survey-info">
+          <div class="survey-title">Smartphone Usage Survey</div>
+          <div class="survey-cat">Technology</div>
+          <div class="survey-desc">Share how you use your smartphone daily. Help improve future products!</div>
+        </div>
+      </div>
+      <div class="survey-bottom">
+        <div class="survey-reward">
+          <span>🪙</span><span class="survey-coins">75</span>
+        </div>
+        <div class="survey-time">⏱ 8 min</div>
+      </div>
+    </div>
+
+    <div class="survey-card" style="opacity:.6">
+      <div class="survey-top">
+        <div class="survey-icon-box">🛒</div>
+        <div class="survey-info">
+          <div class="survey-title">Online Shopping Habits</div>
+          <div class="survey-cat">Shopping</div>
+          <div class="survey-desc">How do you shop online? Share your experience with e-commerce platforms.</div>
+        </div>
+      </div>
+      <div class="survey-bottom">
+        <div class="survey-reward"><span>🪙</span><span class="survey-coins">60</span></div>
+        <div class="done-badge">✅ Completed</div>
+      </div>
+    </div>
+
+    <div class="survey-card" onclick="openSurvey('health')">
+      <div class="survey-top">
+        <div class="survey-icon-box">💪</div>
+        <div class="survey-info">
+          <div class="survey-title">Health & Fitness Survey</div>
+          <div class="survey-cat">Health</div>
+          <div class="survey-desc">Tell us about your workout routine and health goals.</div>
+        </div>
+      </div>
+      <div class="survey-bottom">
+        <div class="survey-reward"><span>🪙</span><span class="survey-coins">40</span></div>
+        <div class="survey-time">⏱ 4 min</div>
+      </div>
+    </div>
+    <br/>
+  </div>
+
+  <!-- WALLET -->
+  <div id="page-wallet" class="page">
+    <div class="wallet-hero">
+      <div class="wallet-bal-label">💰 Total Balance</div>
+      <div class="wallet-bal" id="wallet-coins-display">1,250</div>
+      <div class="wallet-bal-inr">≈ ₹12.50 (₹0.01 per coin)</div>
+      <div class="wallet-actions">
+        <button class="btn btn-primary" onclick="openWithdrawModal()">💸 Withdraw</button>
+        <button class="btn btn-outline" onclick="navTo('ads')">➕ Earn More</button>
+      </div>
+    </div>
+
+    <div class="withdraw-tabs">
+      <div class="wtab active" onclick="switchWalletTab(this,'earning')">Earning History</div>
+      <div class="wtab" onclick="switchWalletTab(this,'withdrawal')">Withdrawals</div>
+    </div>
+
+    <div id="tab-earning" style="padding:0 16px;">
+      <div class="history-item">
+        <div class="hist-icon">📺</div>
+        <div class="hist-info">
+          <div class="hist-desc">Watched Samsung Ad</div>
+          <div class="hist-date">Today, 10:23 AM</div>
+        </div>
+        <div>
+          <div class="hist-amount" style="color:var(--accent)">+15 🪙</div>
+        </div>
+      </div>
+      <div class="history-item">
+        <div class="hist-icon">📋</div>
+        <div class="hist-info">
+          <div class="hist-desc">Food Preferences Survey</div>
+          <div class="hist-date">Today, 9:15 AM</div>
+        </div>
+        <div>
+          <div class="hist-amount" style="color:var(--accent)">+50 🪙</div>
+        </div>
+      </div>
+      <div class="history-item">
+        <div class="hist-icon">🎮</div>
+        <div class="hist-info">
+          <div class="hist-desc">Temple Run – Level 2</div>
+          <div class="hist-date">Yesterday, 7:40 PM</div>
+        </div>
+        <div>
+          <div class="hist-amount" style="color:var(--accent)">+30 🪙</div>
+        </div>
+      </div>
+      <div class="history-item">
+        <div class="hist-icon">🔥</div>
+        <div class="hist-info">
+          <div class="hist-desc">Daily Login Bonus</div>
+          <div class="hist-date">Yesterday, 12:00 AM</div>
+        </div>
+        <div>
+          <div class="hist-amount" style="color:var(--accent)">+10 🪙</div>
+        </div>
+      </div>
+      <div class="history-item">
+        <div class="hist-icon">🔗</div>
+        <div class="hist-info">
+          <div class="hist-desc">Referral Bonus – Priya joined</div>
+          <div class="hist-date">May 5, 2026</div>
+        </div>
+        <div>
+          <div class="hist-amount" style="color:var(--accent)">+50 🪙</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-withdrawal" style="display:none;padding:0 16px;">
+      <div class="history-item">
+        <div class="hist-icon">💸</div>
+        <div class="hist-info">
+          <div class="hist-desc">UPI Withdrawal – rahul@upi</div>
+          <div class="hist-date">Apr 30, 2026</div>
+        </div>
+        <div style="text-align:right">
+          <div class="hist-amount" style="color:var(--danger)">-1000 🪙</div>
+          <div class="hist-status" style="color:var(--success)">✅ Approved</div>
+        </div>
+      </div>
+      <div class="history-item">
+        <div class="hist-icon">💸</div>
+        <div class="hist-info">
+          <div class="hist-desc">Bank Transfer</div>
+          <div class="hist-date">Apr 15, 2026</div>
+        </div>
+        <div style="text-align:right">
+          <div class="hist-amount" style="color:var(--danger)">-2000 🪙</div>
+          <div class="hist-status" style="color:var(--gold)">⏳ Pending</div>
+        </div>
+      </div>
+    </div>
+    <br/>
+  </div>
+
+  <!-- PROFILE -->
+  <div id="page-profile" class="page">
+    <div class="profile-hero">
+      <div class="profile-avatar">👤</div>
+      <div class="profile-name" id="profile-name-display">Rahul Sharma</div>
+      <div class="profile-email">rahul@gmail.com</div>
+      <div class="profile-badges">
+        <span class="badge badge-gold">🏆 Power User</span>
+        <span class="badge badge-green">✅ Verified</span>
+        <span class="badge badge-blue">🔥 7 Day Streak</span>
+      </div>
+    </div>
+
+    <div class="referral-card">
+      <div class="referral-title">🎁 Refer & Earn</div>
+      <div class="referral-sub">Share your code. You both earn 50 coins on signup!</div>
+      <div class="referral-code-box">
+        <span class="referral-code">RAHUL8A3F</span>
+        <span class="copy-btn" onclick="copyReferral()">📋</span>
+      </div>
+    </div>
+
+    <div class="profile-menu">
+      <div class="menu-item">
+        <span class="menu-icon">📊</span>
+        <span class="menu-label">My Statistics</span>
+        <span class="menu-arrow">›</span>
+      </div>
+      <div class="menu-item" onclick="navTo('wallet')">
+        <span class="menu-icon">💰</span>
+        <span class="menu-label">My Wallet</span>
+        <span class="menu-arrow">›</span>
+      </div>
+      <div class="menu-item">
+        <span class="menu-icon">🔔</span>
+        <span class="menu-label">Notifications</span>
+        <span class="menu-arrow">›</span>
+      </div>
+      <div class="menu-item">
+        <span class="menu-icon">🔒</span>
+        <span class="menu-label">Privacy & Security</span>
+        <span class="menu-arrow">›</span>
+      </div>
+      <div class="menu-item">
+        <span class="menu-icon">❓</span>
+        <span class="menu-label">Help & Support</span>
+        <span class="menu-arrow">›</span>
+      </div>
+      <div class="menu-item" onclick="doLogout()">
+        <span class="menu-icon">🚪</span>
+        <span class="menu-label" style="color:var(--danger)">Logout</span>
+        <span class="menu-arrow" style="color:var(--danger)">›</span>
+      </div>
+    </div>
+    <br/>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="navTo('home')" id="nav-home">
+      <span class="nav-icon">🏠</span><span class="nav-label">Home</span>
+    </div>
+    <div class="nav-item" onclick="navTo('ads')" id="nav-ads">
+      <span class="nav-icon">📺</span><span class="nav-label">Ads</span>
+    </div>
+    <div class="nav-item" onclick="navTo('games')" id="nav-games">
+      <span class="nav-icon">🎮</span><span class="nav-label">Games</span>
+    </div>
+    <div class="nav-item" onclick="navTo('surveys')" id="nav-surveys">
+      <span class="nav-icon">📋</span><span class="nav-label">Surveys</span>
+    </div>
+    <div class="nav-item" onclick="navTo('wallet')" id="nav-wallet">
+      <span class="nav-icon">💰</span><span class="nav-label">Wallet</span>
+    </div>
+  </nav>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MODALS
+════════════════════════════════════════════ -->
+
+<!-- AD PLAYER MODAL -->
+<div class="modal-bg ad-player-modal" id="ad-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="ad-screen" id="ad-screen-emoji" style="font-size:80px">📱</div>
+    <div class="modal-title" id="ad-modal-title">Samsung Galaxy S24 Ultra</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px" id="ad-modal-brand">Samsung</div>
+    <div class="progress-bar"><div class="progress-fill" id="ad-progress" style="width:0%"></div></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <span style="font-size:13px;color:var(--text2)">Watch full ad to earn</span>
+      <span style="font-family:var(--font-head);font-size:18px;font-weight:700;color:var(--gold)" id="ad-timer-disp">30s</span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;background:rgba(255,184,0,.1);border:1px solid rgba(255,184,0,.2);border-radius:12px;padding:10px 14px;margin-bottom:16px;">
+      <span style="font-size:20px;">🪙</span>
+      <span style="font-size:13px;color:var(--text2)">You will earn <strong id="ad-modal-coins" style="color:var(--gold)">15 coins</strong> after watching</span>
+    </div>
+    <button class="btn btn-outline btn-full" onclick="closeAdModal()">✕ Close</button>
+  </div>
+</div>
+
+<!-- GAME MODAL -->
+<div class="modal-bg" id="game-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;font-size:64px;margin-bottom:12px" id="game-modal-icon">🍉</div>
+    <div class="modal-title" id="game-modal-title">Fruit Ninja</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px" id="game-modal-desc">Slice fruits, avoid bombs!</div>
+    <div style="margin-bottom:16px">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Choose Level</div>
+      <div id="game-levels-list"></div>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="startGame()" id="play-game-btn">▶ Play Now</button>
+    <br/><br/>
+    <button class="btn btn-outline btn-full" onclick="closeModal('game-modal')">Close</button>
+  </div>
+</div>
+
+<!-- GAME PLAYING MODAL -->
+<div class="modal-bg" id="game-play-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Playing <span id="gplay-name" style="color:var(--accent)">Fruit Ninja</span></div>
+    <div class="game-play-area">
+      <span id="gplay-icon" style="font-size:80px;">🍉</span>
+      <div class="game-play-timer" id="gplay-timer">2:00</div>
+      <div style="font-size:13px;color:var(--text2)">Keep playing to earn coins!</div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="gplay-progress" style="width:0%"></div></div>
+    <div style="text-align:center;padding:8px 0;font-size:13px;color:var(--text2)">
+      Reward: <strong id="gplay-coins" style="color:var(--gold)">20 coins</strong>
+    </div>
+  </div>
+</div>
+
+<!-- SURVEY MODAL -->
+<div class="modal-bg" id="survey-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="survey-modal-title">Food Survey</div>
+    <div id="survey-questions-container"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;">
+      <span style="font-size:12px;color:var(--text2)" id="survey-progress-text">Q 1 of 3</span>
+      <button class="btn btn-primary" id="survey-next-btn" onclick="nextSurveyQ()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- WITHDRAW MODAL -->
+<div class="modal-bg" id="withdraw-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">💸 Withdraw Coins</div>
+    <div style="background:rgba(255,184,0,.1);border:1px solid rgba(255,184,0,.2);border-radius:12px;padding:12px;margin-bottom:20px;">
+      <div style="font-size:12px;color:var(--text2)">Available Balance</div>
+      <div style="font-family:var(--font-head);font-size:28px;font-weight:800;color:var(--gold)" id="withdraw-balance">1,250 🪙 ≈ ₹12.50</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:2px;">Minimum withdrawal: 1000 coins (₹10)</div>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <div class="input-label">Select Amount</div>
+      <input type="number" class="input" placeholder="Enter coins (min. 1000)" id="withdraw-amount"/>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <div class="input-label">Payment Method</div>
+      <div class="withdraw-method active" onclick="selectMethod(this,'upi')">
+        <div class="wm-top">
+          <span class="wm-icon">📲</span>
+          <div class="wm-info">
+            <div class="wm-name">UPI Transfer</div>
+            <div class="wm-desc">Instant transfer to any UPI ID</div>
+          </div>
+          <div class="wm-radio"><div class="wm-radio-dot"></div></div>
+        </div>
+      </div>
+      <div class="withdraw-method" onclick="selectMethod(this,'bank')">
+        <div class="wm-top">
+          <span class="wm-icon">🏦</span>
+          <div class="wm-info">
+            <div class="wm-name">Bank Transfer</div>
+            <div class="wm-desc">NEFT/IMPS to your bank account</div>
+          </div>
+          <div class="wm-radio"><div class="wm-radio-dot"></div></div>
+        </div>
+      </div>
+      <div class="withdraw-method" onclick="selectMethod(this,'redeem')">
+        <div class="wm-top">
+          <span class="wm-icon">🎁</span>
+          <div class="wm-info">
+            <div class="wm-name">Redeem Code</div>
+            <div class="wm-desc">Get a redeemable gift voucher</div>
+          </div>
+          <div class="wm-radio"><div class="wm-radio-dot"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="method-fields-upi">
+      <div class="input-group">
+        <div class="input-label">UPI ID</div>
+        <input type="text" class="input" placeholder="yourname@upi"/>
+      </div>
+    </div>
+    <div id="method-fields-bank" style="display:none;">
+      <div class="input-group">
+        <div class="input-label">Account Number</div>
+        <input type="text" class="input" placeholder="Enter account number"/>
+      </div>
+      <div class="input-group">
+        <div class="input-label">IFSC Code</div>
+        <input type="text" class="input" placeholder="Enter IFSC code"/>
+      </div>
+      <div class="input-group">
+        <div class="input-label">Account Holder Name</div>
+        <input type="text" class="input" placeholder="Enter full name"/>
+      </div>
+    </div>
+    <div id="method-fields-redeem" style="display:none;">
+      <div style="background:var(--card2);border-radius:12px;padding:14px;text-align:center;font-size:13px;color:var(--text2);">
+        A redeem code will be generated and sent to your registered email.
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-full" style="margin-top:16px" onclick="submitWithdrawal()">Submit Request</button>
+    <button class="btn btn-outline btn-full" style="margin-top:8px" onclick="closeModal('withdraw-modal')">Cancel</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     ADMIN PANEL
+════════════════════════════════════════════ -->
+
+<!-- ADMIN LOGIN -->
+<div id="admin-login-page" style="display:none;">
+  <div class="admin-login" style="background:var(--bg);">
+    <div class="admin-login-card">
+      <div class="admin-login-icon">🛡️</div>
+      <div class="admin-login-title">Admin Panel</div>
+      <div class="admin-login-sub">Sign in to manage EarnKaro</div>
+      <div class="input-group">
+        <div class="input-label">Email</div>
+        <input type="email" class="input" placeholder="admin@earnkaro.com" id="admin-email"/>
+      </div>
+      <div class="input-group">
+        <div class="input-label">Password</div>
+        <input type="password" class="input" placeholder="••••••••" id="admin-password"/>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="adminLogin()">Login to Admin</button>
+      <button class="btn btn-outline btn-full" style="margin-top:8px" onclick="backToUserLogin()">← Back to User App</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL MAIN -->
+<div id="admin-panel" style="display:none;">
+  <div class="admin-layout">
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar" id="admin-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo-icon">🛡️</div>
+        <span class="sidebar-logo-text">EarnKaro Admin</span>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-section">Main</div>
+        <div class="nav-link active" onclick="showAdminSection('dashboard',this)">
+          <span class="nl-icon">📊</span><span class="nl-text">Dashboard</span>
+        </div>
+        <div class="sidebar-section">Content</div>
+        <div class="nav-link" onclick="showAdminSection('users',this)">
+          <span class="nl-icon">👥</span><span class="nl-text">Users</span>
+        </div>
+        <div class="nav-link" onclick="showAdminSection('ads-mgmt',this)">
+          <span class="nl-icon">📺</span><span class="nl-text">Ads</span>
+        </div>
+        <div class="nav-link" onclick="showAdminSection('games-mgmt',this)">
+          <span class="nl-icon">🎮</span><span class="nl-text">Games</span>
+        </div>
+        <div class="nav-link" onclick="showAdminSection('surveys-mgmt',this)">
+          <span class="nl-icon">📋</span><span class="nl-text">Surveys</span>
+        </div>
+        <div class="sidebar-section">Finance</div>
+        <div class="nav-link" onclick="showAdminSection('withdrawals-mgmt',this)">
+          <span class="nl-icon">💸</span><span class="nl-text">Withdrawals</span>
+        </div>
+        <div class="nav-link" onclick="showAdminSection('coins-control',this)">
+          <span class="nl-icon">🪙</span><span class="nl-text">Coins Control</span>
+        </div>
+        <div class="sidebar-section">System</div>
+        <div class="nav-link" onclick="showAdminSection('app-settings',this)">
+          <span class="nl-icon">⚙️</span><span class="nl-text">App Settings</span>
+        </div>
+        <div class="nav-link" onclick="showAdminSection('apk-mgmt',this)">
+          <span class="nl-icon">📦</span><span class="nl-text">APK Manager</span>
+        </div>
+        <div class="nav-link" onclick="adminLogout()">
+          <span class="nl-icon">🚪</span><span class="nl-text">Logout</span>
+        </div>
+      </nav>
+    </aside>
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <!-- ADMIN MAIN -->
+    <main class="admin-main">
+      <div class="admin-header">
+        <div class="collapse-btn" onclick="toggleSidebar()">☰</div>
+        <div class="admin-page-title" id="admin-page-title">Dashboard</div>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
+          <div class="badge badge-green">🟢 Live</div>
+          <div class="avatar">🛡️</div>
+        </div>
+      </div>
+
+      <!-- DASHBOARD -->
+      <div id="admin-dashboard" class="admin-page active" style="padding:24px">
+        <div class="admin-stats">
+          <div class="admin-stat">
+            <div class="as-top">
+              <div class="as-icon" style="background:rgba(0,229,160,.15)">👥</div>
+              <span class="as-change up">+12%</span>
+            </div>
+            <div class="as-val">2,847</div>
+            <div class="as-label">Total Users</div>
+          </div>
+          <div class="admin-stat">
+            <div class="as-top">
+              <div class="as-icon" style="background:rgba(0,153,255,.15)">📺</div>
+              <span class="as-change up">+8%</span>
+            </div>
+            <div class="as-val">12,450</div>
+            <div class="as-label">Ad Views Today</div>
+          </div>
+          <div class="admin-stat">
+            <div class="as-top">
+              <div class="as-icon" style="background:rgba(255,184,0,.15)">🪙</div>
+              <span class="as-change up">+23%</span>
+            </div>
+            <div class="as-val">1.2M</div>
+            <div class="as-label">Coins Distributed</div>
+          </div>
+          <div class="admin-stat">
+            <div class="as-top">
+              <div class="as-icon" style="background:rgba(255,68,68,.15)">💸</div>
+              <span class="as-change" style="color:var(--gold)">14 new</span>
+            </div>
+            <div class="as-val">14</div>
+            <div class="as-label">Pending Withdrawals</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+          <div class="card">
+            <div style="font-family:var(--font-head);font-size:14px;font-weight:700;margin-bottom:12px;">Daily New Users (7 days)</div>
+            <div class="chart-area" id="chart-users"></div>
+          </div>
+          <div class="card">
+            <div style="font-family:var(--font-head);font-size:14px;font-weight:700;margin-bottom:12px;">Daily Coins Distributed</div>
+            <div class="chart-area" id="chart-coins"></div>
+          </div>
+        </div>
+
+        <div class="data-table-wrapper">
+          <div class="table-header">
+            <div class="table-title">Recent Withdrawals</div>
+            <button class="btn btn-primary" style="padding:8px 14px;font-size:12px;" onclick="showAdminSection('withdrawals-mgmt',null)">View All</button>
+          </div>
+          <table class="data-table">
+            <thead><tr>
+              <th>User</th><th>Coins</th><th>Amount</th><th>Method</th><th>Status</th><th>Action</th>
+            </tr></thead>
+            <tbody>
+              <tr>
+                <td><div class="user-cell"><div class="user-cell-avatar">R</div>Rahul S.</div></td>
+                <td>1000</td><td>₹10</td><td>UPI</td>
+                <td><span class="badge badge-gold">⏳ Pending</span></td>
+                <td><div class="table-actions"><button class="tbl-btn tbl-btn-green">✓ Approve</button><button class="tbl-btn tbl-btn-red">✗ Reject</button></div></td>
+              </tr>
+              <tr>
+                <td><div class="user-cell"><div class="user-cell-avatar">P</div>Priya K.</div></td>
+                <td>2000</td><td>₹20</td><td>Bank</td>
+                <td><span class="badge badge-green">✅ Approved</span></td>
+                <td><div class="table-actions"><button class="tbl-btn tbl-btn-blue">View</button></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- USERS -->
+      <div id="admin-users" class="admin-page" style="padding:24px">
+        <div class="data-table-wrapper">
+          <div class="table-header">
+            <div class="table-title">All Users</div>
+            <input class="search-input" placeholder="🔍 Search users..."/>
+          </div>
+          <table class="data-table">
+            <thead><tr>
+              <th>User</th><th>Coins</th><th>Status</th><th>Joined</th><th>Actions</th>
+            </tr></thead>
+            <tbody>
+              <tr>
+                <td><div class="user-cell"><div class="user-cell-avatar">R</div><div><div>Rahul Sharma</div><div style="font-size:11px;color:var(--text2)">rahul@gmail.com</div></div></div></td>
+                <td style="color:var(--gold);font-weight:700">1,250</td>
+                <td><span class="badge badge-green">Active</span></td>
+                <td style="color:var(--text2)">May 1, 2026</td>
+                <td><div class="table-actions">
+                  <button class="tbl-btn tbl-btn-blue">👁 View</button>
+                  <button class="tbl-btn tbl-btn-yellow" onclick="adminAddCoins('Rahul')">🪙 Coins</button>
+                  <button class="tbl-btn tbl-btn-red" onclick="showToast('User blocked','error')">🚫 Block</button>
+                </div></td>
+              </tr>
+              <tr>
+                <td><div class="user-cell"><div class="user-cell-avatar">P</div><div><div>Priya Kumari</div><div style="font-size:11px;color:var(--text2)">priya@gmail.com</div></div></div></td>
+                <td style="color:var(--gold);font-weight:700">580</td>
+                <td><span class="badge badge-green">Active</span></td>
+                <td style="color:var(--text2)">May 3, 2026</td>
+                <td><div class="table-actions">
+                  <button class="tbl-btn tbl-btn-blue">👁 View</button>
+                  <button class="tbl-btn tbl-btn-yellow" onclick="adminAddCoins('Priya')">🪙 Coins</button>
+                  <button class="tbl-btn tbl-btn-red" onclick="showToast('User blocked','error')">🚫 Block</button>
+                </div></td>
+              </tr>
+              <tr>
+                <td><div class="user-cell"><div class="user-cell-avatar">A</div><div><div>Amit Joshi</div><div style="font-size:11px;color:var(--text2)">amit@gmail.com</div></div></div></td>
+                <td style="color:var(--gold);font-weight:700">3,400</td>
+                <td><span class="badge badge-red">Blocked</span></td>
+                <td style="color:var(--text2)">Apr 28, 2026</td>
+                <td><div class="table-actions">
+                  <button class="tbl-btn tbl-btn-blue">👁 View</button>
+                  <button class="tbl-btn tbl-btn-green" onclick="showToast('User unblocked','success')">✓ Unblock</button>
+                  <button class="tbl-btn tbl-btn-red" onclick="showToast('User deleted','error')">🗑 Delete</button>
+                </div></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="pagination">
+            <span>Showing 1–3 of 2,847 users</span>
+            <div class="page-btns">
+              <button class="page-btn active">1</button>
+              <button class="page-btn">2</button>
+              <button class="page-btn">3</button>
+              <button class="page-btn">›</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADS MANAGEMENT -->
+      <div id="admin-ads-mgmt" class="admin-page" style="padding:24px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div style="font-family:var(--font-head);font-size:18px;font-weight:700;">Ads Management</div>
+          <button class="btn btn-primary" style="font-size:13px;padding:10px 16px;" onclick="openAddAdModal()">+ Add New Ad</button>
+        </div>
+        <div class="data-table-wrapper">
+          <table class="data-table" id="admin-ads-table">
+            <thead><tr><th>Ad Title</th><th>Brand</th><th>Emoji</th><th>Reward</th><th>Duration</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="admin-ads-tbody">
+              <tr><td colspan="7" style="text-align:center;color:var(--text2);padding:20px;">Loading ads...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- GAMES MANAGEMENT -->
+      <div id="admin-games-mgmt" class="admin-page" style="padding:24px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div style="font-family:var(--font-head);font-size:18px;font-weight:700;">Games Management</div>
+          <button class="btn btn-primary" style="font-size:13px;padding:10px 16px;" onclick="openAddGameModal()">+ Add New Game</button>
+        </div>
+        <div class="data-table-wrapper">
+          <table class="data-table" id="admin-games-table">
+            <thead><tr><th>Game</th><th>Category</th><th>Icon</th><th>Levels</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="admin-games-tbody">
+              <tr><td colspan="6" style="text-align:center;color:var(--text2);padding:20px;">Loading games...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SURVEYS MANAGEMENT -->
+      <div id="admin-surveys-mgmt" class="admin-page" style="padding:24px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div style="font-family:var(--font-head);font-size:18px;font-weight:700;">Surveys Management</div>
+          <button class="btn btn-primary" style="font-size:13px;padding:10px 16px;" onclick="openAddSurveyModal()">+ Add Survey</button>
+        </div>
+        <div class="data-table-wrapper">
+          <table class="data-table" id="admin-surveys-table">
+            <thead><tr><th>Survey Title</th><th>Category</th><th>Reward</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="admin-surveys-tbody">
+              <tr><td colspan="5" style="text-align:center;color:var(--text2);padding:20px;">Loading surveys...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- WITHDRAWALS MANAGEMENT -->
+      <div id="admin-withdrawals-mgmt" class="admin-page" style="padding:24px">
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+          <button class="filter-chip active" style="cursor:pointer">All (14)</button>
+          <button class="filter-chip" style="cursor:pointer">Pending (14)</button>
+          <button class="filter-chip" style="cursor:pointer">Approved</button>
+          <button class="filter-chip" style="cursor:pointer">Rejected</button>
+          <button class="btn btn-outline" style="padding:6px 14px;font-size:12px;margin-left:auto;" onclick="showToast('CSV exported!','success')">⬇ Export CSV</button>
+        </div>
+        <div class="data-table-wrapper">
+          <table class="data-table">
+            <thead><tr><th>User</th><th>Coins</th><th>Amount</th><th>Method</th><th>Details</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><div class="user-cell"><div class="user-cell-avatar">R</div>Rahul S.</div></td>
+                <td>1000</td><td>₹10.00</td><td>UPI</td>
+                <td style="color:var(--text2);font-size:12px">rahul@upi</td>
+                <td style="color:var(--text2)">May 7</td>
+                <td><span class="badge badge-gold">⏳ Pending</span></td>
+                <td><div class="table-actions">
+                  <button class="tbl-btn tbl-btn-green" onclick="approveWithdrawal(this)">✓ Approve</button>
+                  <button class="tbl-btn tbl-btn-red" onclick="rejectWithdrawal(this)">✗ Reject</button>
+                </div></td>
+              </tr>
+              <tr>
+                <td><div class="user-cell"><div class="user-cell-avatar">P</div>Priya K.</div></td>
+                <td>2000</td><td>₹20.00</td><td>Bank</td>
+                <td style="color:var(--text2);font-size:12px">HDFC ••••1234</td>
+                <td style="color:var(--text2)">May 6</td>
+                <td><span class="badge badge-gold">⏳ Pending</span></td>
+                <td><div class="table-actions">
+                  <button class="tbl-btn tbl-btn-green" onclick="approveWithdrawal(this)">✓ Approve</button>
+                  <button class="tbl-btn tbl-btn-red" onclick="rejectWithdrawal(this)">✗ Reject</button>
+                </div></td>
+              </tr>
+              <tr>
+                <td><div class="user-cell"><div class="user-cell-avatar">S</div>Suresh M.</div></td>
+                <td>1500</td><td>₹15.00</td><td>UPI</td>
+                <td style="color:var(--text2);font-size:12px">suresh@paytm</td>
+                <td style="color:var(--text2)">May 5</td>
+                <td><span class="badge badge-green">✅ Approved</span></td>
+                <td><div class="table-actions"><button class="tbl-btn tbl-btn-blue">View</button></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- COINS CONTROL -->
+      <div id="admin-coins-control" class="admin-page" style="padding:24px">
+        <div class="form-section">
+          <div class="form-section-title">🪙 Coin Settings</div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-name">Ad Coin Rate</div>
+              <div class="setting-desc">Coins earned per ad view</div>
+            </div>
+            <input type="number" class="setting-input" value="15"/>
+          </div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-name">Referral Bonus</div>
+              <div class="setting-desc">Coins for referrer & referee</div>
+            </div>
+            <input type="number" class="setting-input" value="50"/>
+          </div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-name">Daily Login Bonus</div>
+              <div class="setting-desc">Coins for daily check-in</div>
+            </div>
+            <input type="number" class="setting-input" value="10"/>
+          </div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-name">Coin to INR Rate</div>
+              <div class="setting-desc">₹ value per 1 coin</div>
+            </div>
+            <input type="number" class="setting-input" value="0.01" step="0.001"/>
+          </div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-name">Min Withdrawal (coins)</div>
+              <div class="setting-desc">Minimum coins to withdraw</div>
+            </div>
+            <input type="number" class="setting-input" value="1000"/>
+          </div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-name">Max Daily Earning</div>
+              <div class="setting-desc">Max coins per user per day</div>
+            </div>
+            <input type="number" class="setting-input" value="500"/>
+          </div>
+          <button class="btn btn-primary" style="margin-top:16px" onclick="showToast('Coin settings saved!','success')">Save Settings</button>
+        </div>
+      </div>
+
+      <!-- APP SETTINGS -->
+      <div id="admin-app-settings" class="admin-page" style="padding:24px">
+        <div class="form-section">
+          <div class="form-section-title">⚙️ App Settings</div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-name">App Name</div>
+            </div>
+            <input type="text" class="setting-input" value="EarnKaro" style="width:140px;text-align:left;"/>
+          </div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-name">Maintenance Mode</div>
+              <div class="setting-desc">Disable user access temporarily</div>
+            </div>
+            <div class="toggle" onclick="toggleSwitch(this)"><div class="toggle-dot"></div></div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-name">New Signups</div>
+              <div class="setting-desc">Allow new user registrations</div>
+            </div>
+            <div class="toggle on" onclick="toggleSwitch(this)"><div class="toggle-dot"></div></div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-name">Referral System</div>
+              <div class="setting-desc">Enable referral bonuses</div>
+            </div>
+            <div class="toggle on" onclick="toggleSwitch(this)"><div class="toggle-dot"></div></div>
+          </div>
+          <div class="input-group" style="margin-top:16px;">
+            <div class="input-label">Announcement Banner Text</div>
+            <input type="text" class="input" placeholder="e.g. 🎉 New bonus offer! Earn 2x coins this weekend!" value="🎉 Weekend Bonus: Earn 2x coins on all surveys!"/>
+          </div>
+          <button class="btn btn-primary" onclick="showToast('App settings saved!','success')">Save Settings</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ═══ APK MANAGER ADMIN PAGE (injected inside admin-main via JS) ═══ -->
+<template id="apk-mgmt-tpl">
+  <div id="admin-apk-mgmt" class="admin-page" style="padding:24px">
+    <div style="font-family:var(--font-head);font-size:18px;font-weight:700;margin-bottom:16px;">📦 APK Manager</div>
+    <div class="form-section">
+      <div class="form-section-title">Upload / Set APK Download Link</div>
+      <div class="input-group">
+        <div class="input-label">APK Download URL (Direct link to .apk file)</div>
+        <input type="url" class="input" id="apk-url-input" placeholder="https://example.com/earnkaro.apk"/>
+      </div>
+      <div class="input-group">
+        <div class="input-label">App Version (e.g. 1.0.0)</div>
+        <input type="text" class="input" id="apk-version-input" placeholder="1.0.0"/>
+      </div>
+      <div class="input-group">
+        <div class="input-label">Release Notes (Optional)</div>
+        <textarea class="input" id="apk-notes-input" placeholder="What's new in this version..." rows="3" style="resize:none;"></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="saveApkLink()">💾 Save APK Link</button>
+    </div>
+    <div class="form-section" id="apk-preview-section" style="display:none;">
+      <div class="form-section-title">Current APK Info</div>
+      <div style="background:var(--bg3);border-radius:12px;padding:16px;display:flex;align-items:center;gap:16px;">
+        <div style="font-size:48px;">📦</div>
+        <div style="flex:1;">
+          <div style="font-family:var(--font-head);font-size:16px;font-weight:700;">EarnKaro App</div>
+          <div id="apk-preview-version" style="font-size:12px;color:var(--text2);margin-top:2px;"></div>
+          <div id="apk-preview-notes" style="font-size:12px;color:var(--text2);margin-top:4px;"></div>
+          <a id="apk-preview-link" href="#" target="_blank" style="font-size:12px;color:var(--accent);margin-top:4px;display:block;word-break:break-all;"></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ═══════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════ -->
+<script>
+// ── SUPABASE INIT ──
+const SUPA_URL = 'https://pnlsyuhzkbkackseawqg.supabase.co';
+const SUPA_KEY = 'sb_publishable_w6VRJRlfwxoEda9LRJCiNg_IRCHn0DE';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+// ── STATE ──
+let coins = 0;
+let currentUser = null;
+let currentNav = 'home';
+let adTimer = null;
+let adDuration = 30;
+let adElapsed = 0;
+let gameTimer = null;
+let gameRequired = 120;
+let gameElapsed = 0;
+let gameCoins = 0;
+let selectedGameLevel = null;
+let surveyData = {};
+let surveyQIndex = 0;
+let currentMethod = 'upi';
+let isLoggedIn = false;
+let isAdmin = false;
+
+const SURVEYS = {
+  food:{
+    title:'Food Preferences Survey',
+    coins:50,
+    questions:[
+      {type:'mcq',q:'How often do you eat out per week?',opts:['Daily','3-4 times','1-2 times','Rarely']},
+      {type:'rating',q:'Rate your preference for spicy food (1=Mild, 5=Extra Spicy)'},
+      {type:'mcq',q:'What is your favorite cuisine?',opts:['Indian','Chinese','Italian','Continental','Other']},
+      {type:'text',q:'Any specific dietary restrictions? (e.g. vegetarian, vegan, gluten-free)'}
+    ]
+  },
+  tech:{
+    title:'Smartphone Usage Survey',
+    coins:75,
+    questions:[
+      {type:'mcq',q:'Which smartphone brand do you use?',opts:['Samsung','Apple','OnePlus','Xiaomi','Other']},
+      {type:'rating',q:'How satisfied are you with your current phone? (1-5)'},
+      {type:'mcq',q:'How many hours do you spend on your phone daily?',opts:['< 2 hrs','2-4 hrs','4-6 hrs','6+ hrs']},
+      {type:'text',q:'What feature would you most like to see in your next smartphone?'}
+    ]
+  },
+  health:{
+    title:'Health & Fitness Survey',
+    coins:40,
+    questions:[
+      {type:'mcq',q:'How many days per week do you exercise?',opts:['0','1-2','3-4','5+']},
+      {type:'rating',q:'Rate your overall fitness level (1=Very Low, 5=Very High)'},
+      {type:'mcq',q:'What type of exercise do you prefer?',opts:['Running','Gym','Yoga','Sports','No exercise']}
+    ]
+  }
+};
+
+// ── NAVIGATION ──
+function navTo(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  const navEl = document.getElementById('nav-'+page);
+  if(navEl) navEl.classList.add('active');
+  currentNav = page;
+  window.scrollTo(0,0);
+}
+
+// ── SUPABASE AUTH & DB HELPERS ──
+
+// Listen to auth state changes
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (session && session.user) {
+    currentUser = session.user;
+    isLoggedIn = true;
+    await loadOrCreateProfile(currentUser);
+    showUserApp();
+  } else {
+    currentUser = null;
+    isLoggedIn = false;
+  }
+});
+
+async function loadOrCreateProfile(user) {
+  // Upsert profile in DB
+  const { data, error } = await sb.from('profiles').upsert({
+    id: user.id,
+    email: user.email,
+    display_name: user.user_metadata?.full_name || user.email.split('@')[0],
+    avatar_url: user.user_metadata?.avatar_url || '',
+    updated_at: new Date().toISOString()
+  }, { onConflict: 'id', ignoreDuplicates: false }).select().single();
+
+  if (data) {
+    // Check if user is blocked
+    if (data.status === 'blocked') {
+      await sb.auth.signOut();
+      currentUser = null;
+      isLoggedIn = false;
+      document.getElementById('user-app').style.display = 'none';
+      document.getElementById('page-login').style.display = 'flex';
+      document.getElementById('page-login').classList.add('active');
+      showToast('🚫 Aapka account block kar diya gaya hai. Admin se contact karein.','error');
+      return;
+    }
+    coins = data.coins || 0;
+    const name = data.display_name || user.email.split('@')[0];
+    const el = document.getElementById('user-display-name');
+    if (el) el.textContent = name;
+    const pn = document.getElementById('profile-name-display');
+    if (pn) pn.textContent = name;
+  }
+}
+
+async function syncCoins(newVal) {
+  if (!currentUser) return;
+  coins = newVal;
+  updateCoinsDisplay(newVal);
+  await sb.from('profiles').update({ coins: newVal, updated_at: new Date().toISOString() }).eq('id', currentUser.id);
+}
+
+// ── AUTH FUNCTIONS ──
+async function doLogin() {
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.href }
+  });
+  if (error) showToast('Login error: ' + error.message, 'error');
+}
+
+function showUserApp() {
+  document.getElementById('page-login').classList.remove('active');
+  document.getElementById('page-login').style.display = 'none';
+  document.getElementById('user-app').style.display = 'block';
+  navTo('home');
+  const name = currentUser?.user_metadata?.full_name || currentUser?.email?.split('@')[0] || 'User';
+  showToast('Welcome back, ' + name + '! 👋', 'success');
+  updateCoinsDisplay(coins);
+  setTimeout(updateClaimButton, 200);
+  loadRecentActivity();
+  // Load dynamic content from Supabase
+  setTimeout(()=>{ loadUserAds(); loadUserGames(); loadUserSurveys(); checkApkAvailable(); }, 500);
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  isLoggedIn = false;
+  currentUser = null;
+  coins = 0;
+  document.getElementById('user-app').style.display = 'none';
+  document.getElementById('page-login').style.display = 'flex';
+  document.getElementById('page-login').classList.add('active');
+  showToast('Logged out successfully', 'info');
+}
+
+function showAdminLogin() {
+  document.getElementById('page-login').style.display = 'none';
+  document.getElementById('admin-login-page').style.display = 'block';
+}
+
+function backToUserLogin() {
+  document.getElementById('admin-login-page').style.display = 'none';
+  document.getElementById('page-login').style.display = 'flex';
+}
+
+function adminLogin() {
+  const email = document.getElementById('admin-email').value;
+  const pass = document.getElementById('admin-password').value;
+  if ((email === 'earnkaro1.in@gmail.com' || email === 'sujit007598@gmail.com') && pass === 'Earnkaro62038@#$') {
+    document.getElementById('admin-login-page').style.display = 'none';
+    document.getElementById('admin-panel').style.display = 'block';
+    isAdmin = true;
+    buildCharts();
+    loadAdminData();
+    showToast('Admin login successful 🛡️', 'success');
+  } else {
+    showToast('Invalid credentials', 'error');
+  }
+}
+
+function adminLogout() {
+  document.getElementById('admin-panel').style.display = 'none';
+  document.getElementById('page-login').style.display = 'flex';
+  isAdmin = false;
+  showToast('Logged out', 'info');
+}
+
+// ── ACTIVITY LOG ──
+async function logActivity(type, description, coinsChange) {
+  if (!currentUser) return;
+  await sb.from('activity_log').insert({
+    user_id: currentUser.id,
+    type,
+    description,
+    coins_change: coinsChange,
+    created_at: new Date().toISOString()
+  });
+}
+
+async function loadRecentActivity() {
+  if (!currentUser) return;
+  const { data } = await sb.from('activity_log')
+    .select('*').eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false }).limit(10);
+  if (!data || data.length === 0) return;
+  const icons = { ad: '📺', game: '🎮', survey: '📋', withdrawal: '💸', daily: '🔥', referral: '🔗' };
+  const list = document.querySelector('.activity-list');
+  if (!list) return;
+  list.innerHTML = data.map(a => {
+    const t = new Date(a.created_at);
+    const diff = Date.now() - t.getTime();
+    let timeStr = diff < 3600000 ? Math.floor(diff/60000) + ' min ago'
+      : diff < 86400000 ? Math.floor(diff/3600000) + ' hr ago' : 'Yesterday';
+    const plus = a.coins_change > 0;
+    return `<div class="activity-item">
+      <div class="activity-icon">${icons[a.type]||'⚡'}</div>
+      <div class="activity-info">
+        <div class="activity-title">${a.description}</div>
+        <div class="activity-time">${timeStr}</div>
+      </div>
+      <div class="activity-amount ${plus?'plus':'minus'}">${plus?'+':''}${a.coins_change}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── ADMIN DATA ──
+async function loadAdminData() {
+  // Load real users
+  const { data: users } = await sb.from('profiles').select('*').order('created_at', { ascending: false }).limit(50);
+  if (users) renderAdminUsers(users);
+
+  // Load real withdrawals
+  const { data: wds } = await sb.from('withdrawals').select('*, profiles(display_name,email)').order('created_at', { ascending: false }).limit(50);
+  if (wds) renderAdminWithdrawals(wds);
+
+  // Load ads/games/surveys tables
+  loadAdminAds();
+  loadAdminGames();
+  loadAdminSurveys();
+
+  // Update stat numbers
+  if (users) {
+    document.querySelectorAll('.as-val')[0].textContent = users.length.toLocaleString();
+    const totalCoins = users.reduce((s, u) => s + (u.coins || 0), 0);
+    document.querySelectorAll('.as-val')[2].textContent = totalCoins.toLocaleString();
+  }
+}
+
+function renderAdminUsers(users) {
+  const tbody = document.querySelector('#admin-users table tbody');
+  if (!tbody) return;
+  tbody.innerHTML = users.map(u => {
+    const isBlocked = u.status === 'blocked';
+    return `<tr>
+    <td><div class="user-cell"><div class="user-cell-avatar">${(u.display_name||'U')[0].toUpperCase()}</div>
+      <div><div>${u.display_name||'Unknown'}</div><div style="font-size:11px;color:var(--text2)">${u.email||''}</div></div>
+    </div></td>
+    <td style="color:var(--gold)">${(u.coins||0).toLocaleString()} 🪙</td>
+    <td>${new Date(u.created_at||Date.now()).toLocaleDateString('en-IN')}</td>
+    <td><span class="badge ${isBlocked?'badge-red':'badge-green'}">${isBlocked?'🚫 Blocked':'✅ Active'}</span></td>
+    <td><div class="table-actions">
+      <button class="tbl-btn tbl-btn-yellow" onclick="adminAddCoinsPrompt('${u.id}','${u.display_name||'User'}')">🪙 Add</button>
+      ${isBlocked
+        ? `<button class="tbl-btn tbl-btn-green" onclick="adminUnbanUser('${u.id}')">✓ Unblock</button>`
+        : `<button class="tbl-btn tbl-btn-red" onclick="adminBanUser('${u.id}')">🚫 Block</button>`
+      }
+    </div></td>
+  </tr>`;
+  }).join('');
+}
+
+function renderAdminWithdrawals(wds) {
+  const tbody = document.querySelector('#admin-withdrawals-mgmt table tbody');
+  if (!tbody) return;
+  tbody.innerHTML = wds.map(w => `<tr>
+    <td><div class="user-cell"><div class="user-cell-avatar">${((w.profiles?.display_name)||'U')[0].toUpperCase()}</div>
+      ${w.profiles?.display_name||'Unknown'}
+    </div></td>
+    <td>${(w.coins||0).toLocaleString()}</td>
+    <td>₹${((w.coins||0)*0.01).toFixed(2)}</td>
+    <td>${w.method||'UPI'}</td>
+    <td style="color:var(--text2);font-size:12px">${w.detail||'-'}</td>
+    <td style="color:var(--text2)">${new Date(w.created_at).toLocaleDateString('en-IN')}</td>
+    <td><span class="badge ${w.status==='approved'?'badge-green':w.status==='rejected'?'badge-red':'badge-gold'}">
+      ${w.status==='approved'?'✅ Approved':w.status==='rejected'?'❌ Rejected':'⏳ Pending'}
+    </span></td>
+    <td><div class="table-actions">
+      ${w.status==='pending'?`
+        <button class="tbl-btn tbl-btn-green" onclick="adminApproveWd('${w.id}',this)">✓ Approve</button>
+        <button class="tbl-btn tbl-btn-red" onclick="adminRejectWd('${w.id}',this)">✗ Reject</button>
+      `:'<button class="tbl-btn tbl-btn-blue">View</button>'}
+    </div></td>
+  </tr>`).join('');
+}
+
+async function adminAddCoinsPrompt(userId, name) {
+  const amt = prompt(`Add coins to ${name}:`);
+  if (!amt || isNaN(parseInt(amt))) return;
+  const amount = parseInt(amt);
+  const { data: profile } = await sb.from('profiles').select('coins').eq('id', userId).single();
+  if (profile) {
+    await sb.from('profiles').update({ coins: (profile.coins || 0) + amount }).eq('id', userId);
+    showToast('✅ Added ' + amount + ' coins to ' + name, 'success');
+    loadAdminData();
+  }
+}
+
+async function adminBanUser(userId, btn) {
+  if (!confirm('Block this user? They will not be able to login.')) return;
+  await sb.from('profiles').update({ status: 'blocked' }).eq('id', userId);
+  showToast('🚫 User blocked', 'error');
+  loadAdminData();
+}
+
+async function adminUnbanUser(userId) {
+  if (!confirm('Unblock this user?')) return;
+  await sb.from('profiles').update({ status: 'active' }).eq('id', userId);
+  showToast('✅ User unblocked', 'success');
+  loadAdminData();
+}
+
+// ── USER PAGE LOAD IMPROVEMENTS (dynamic ads/games/surveys from Supabase) ──
+async function loadUserAds() {
+  const { data } = await sb.from('ads').select('*').eq('status','active').order('created_at',{ascending:false});
+  if (!data || data.length===0) return;
+  const container = document.getElementById('page-ads');
+  if (!container) return;
+  // Remove hardcoded ad cards and replace with dynamic
+  const existingCards = container.querySelectorAll('.ad-card');
+  existingCards.forEach(c => c.remove());
+  data.forEach(ad => {
+    const div = document.createElement('div');
+    div.className = 'ad-card';
+    div.setAttribute('data-emoji', ad.emoji||'📺');
+    div.setAttribute('data-brand', ad.brand||'');
+    div.setAttribute('data-title', ad.title||'');
+    div.setAttribute('data-coins', ad.coins||15);
+    div.setAttribute('data-duration', ad.duration||30);
+    div.setAttribute('onclick','openAdPlayer(this)');
+    div.innerHTML = `
+      <div class="ad-thumb" style="background:linear-gradient(135deg,#1a0533,#0a1a3a)">${ad.emoji||'📺'}</div>
+      <div class="ad-info">
+        <div class="ad-brand">${ad.brand||''}</div>
+        <div class="ad-title">${ad.title||''}</div>
+        <div class="ad-meta">
+          <div class="ad-reward">🪙 ${ad.coins||15} coins</div>
+          <div class="ad-duration">⏱ ${ad.duration||30} sec</div>
+          <div class="badge badge-green">Available</div>
+        </div>
+      </div>`;
+    div.onclick = () => openAdPlayer(div);
+    container.insertBefore(div, container.querySelector('.sec-title').nextSibling);
+  });
+}
+
+async function loadUserGames() {
+  const { data } = await sb.from('games').select('*').eq('status','active').order('created_at',{ascending:false});
+  if (!data || data.length===0) return;
+  const grid = document.querySelector('#page-games .games-grid');
+  if (!grid) return;
+  data.forEach(g => {
+    const levelsArr = (g.levels_json || []).map(l => l.name + ' → ' + l.coins + ' coins');
+    const maxCoins = Math.max(...(g.levels_json||[{coins:10}]).map(l=>l.coins));
+    const div = document.createElement('div');
+    div.className = 'game-card';
+    div.innerHTML = `<div class="game-icon-area">${g.icon||'🎮'}</div>
+      <div class="game-info">
+        <div class="game-name">${g.name}</div>
+        <div class="game-cat">${g.category||''}</div>
+        <div class="game-reward">🪙 Up to ${maxCoins} coins</div>
+      </div>`;
+    div.onclick = () => openGameModal(g.name, g.icon||'🎮', g.category||'', g.description||'', levelsArr);
+    grid.insertBefore(div, grid.firstChild);
+  });
+}
+
+async function loadUserSurveys() {
+  const { data } = await sb.from('surveys').select('*').eq('status','active').order('created_at',{ascending:false});
+  if (!data || data.length===0) return;
+  const page = document.getElementById('page-surveys');
+  if (!page) return;
+  data.forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'survey-card';
+    div.innerHTML = `<div class="survey-top">
+      <div class="survey-icon-box">${s.icon||'📋'}</div>
+      <div class="survey-info">
+        <div class="survey-title">${s.title}</div>
+        <div class="survey-cat">${s.category||''}</div>
+        <div class="survey-desc">${s.description||''}</div>
+      </div></div>
+      <div class="survey-bottom">
+        <div class="survey-reward"><span>🪙</span><span class="survey-coins">${s.coins||50}</span></div>
+        <div class="survey-time">⏱ ${s.duration_min||5} min</div>
+      </div>`;
+    // Build survey data from db
+    div.onclick = () => {
+      const qArr = [];
+      if (s.questions_json && Array.isArray(s.questions_json)) {
+        s.questions_json.forEach(q => qArr.push(q));
+      } else {
+        qArr.push({type:'text', q: s.title + ' - Share your feedback'});
+      }
+      surveyData = { title: s.title, coins: s.coins||50, questions: qArr };
+      surveyQIndex = 0;
+      document.getElementById('survey-modal-title').textContent = s.title + ' 📋';
+      renderSurveyQ();
+      document.getElementById('survey-modal').classList.add('open');
+    };
+    const secTitle = page.querySelector('.sec-title');
+    secTitle.parentNode.insertBefore(div, secTitle.nextSibling);
+  });
+}
+
+// ── ADMIN ADS/GAMES/SURVEYS CRUD ──
+
+// ADD AD MODAL
+function openAddAdModal() {
+  const existing = document.getElementById('add-ad-modal');
+  if(existing) { existing.classList.add('open'); return; }
+  const modal = document.createElement('div');
+  modal.className = 'modal-bg';
+  modal.id = 'add-ad-modal';
+  modal.innerHTML = `<div class="modal" style="border-radius:20px;margin:20px;max-width:calc(100% - 40px);">
+    <div class="modal-handle"></div>
+    <div class="modal-title">➕ Add New Ad</div>
+    <div class="input-group"><div class="input-label">Ad Title</div><input type="text" class="input" id="new-ad-title" placeholder="e.g. Samsung Galaxy S24 Ad"/></div>
+    <div class="input-group"><div class="input-label">Brand Name</div><input type="text" class="input" id="new-ad-brand" placeholder="e.g. Samsung"/></div>
+    <div class="input-group"><div class="input-label">Emoji Icon</div><input type="text" class="input" id="new-ad-emoji" placeholder="📱" maxlength="4"/></div>
+    <div class="input-group"><div class="input-label">Ad URL (link to ad video/website)</div><input type="url" class="input" id="new-ad-url" placeholder="https://..."/></div>
+    <div class="input-group"><div class="input-label">Coins Reward</div><input type="number" class="input" id="new-ad-coins" placeholder="15" value="15"/></div>
+    <div class="input-group"><div class="input-label">Duration (seconds)</div><input type="number" class="input" id="new-ad-duration" placeholder="30" value="30"/></div>
+    <button class="btn btn-primary btn-full" onclick="adminSaveAd()">💾 Save Ad</button>
+    <button class="btn btn-outline btn-full" style="margin-top:8px" onclick="document.getElementById('add-ad-modal').classList.remove('open')">Cancel</button>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.classList.add('open');
+}
+
+async function adminSaveAd() {
+  const title = document.getElementById('new-ad-title').value.trim();
+  const brand = document.getElementById('new-ad-brand').value.trim();
+  const emoji = document.getElementById('new-ad-emoji').value.trim() || '📺';
+  const url = document.getElementById('new-ad-url').value.trim();
+  const coins = parseInt(document.getElementById('new-ad-coins').value)||15;
+  const duration = parseInt(document.getElementById('new-ad-duration').value)||30;
+  if (!title || !brand) { showToast('Title aur Brand required hai','error'); return; }
+  const { error } = await sb.from('ads').insert({ title, brand, emoji, url, coins, duration, status:'active', created_at: new Date().toISOString() });
+  if (error) { showToast('Error: '+error.message,'error'); return; }
+  showToast('✅ Ad add ho gaya!','success');
+  document.getElementById('add-ad-modal').classList.remove('open');
+  loadAdminAds();
+  loadUserAds();
+}
+
+async function loadAdminAds() {
+  const { data } = await sb.from('ads').select('*').order('created_at',{ascending:false});
+  const tbody = document.getElementById('admin-ads-tbody');
+  if (!tbody) return;
+  if (!data || data.length===0) { tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text2);padding:20px;">Koi ad nahi hai. + Add New Ad se add karo.</td></tr>'; return; }
+  tbody.innerHTML = data.map(ad => `<tr>
+    <td style="font-weight:500">${ad.title}</td>
+    <td>${ad.brand}</td>
+    <td style="font-size:20px">${ad.emoji||'📺'}</td>
+    <td style="color:var(--gold)">${ad.coins} 🪙</td>
+    <td style="color:var(--text2)">${ad.duration}s</td>
+    <td><span class="badge ${ad.status==='active'?'badge-green':'badge-red'}">${ad.status==='active'?'Active':'Paused'}</span></td>
+    <td><div class="table-actions">
+      ${ad.status==='active'
+        ? `<button class="tbl-btn tbl-btn-red" onclick="adminToggleAd('${ad.id}','paused')">⏸ Pause</button>`
+        : `<button class="tbl-btn tbl-btn-green" onclick="adminToggleAd('${ad.id}','active')">▶ Activate</button>`}
+      <button class="tbl-btn tbl-btn-red" onclick="adminDeleteAd('${ad.id}')">🗑 Delete</button>
+    </div></td>
+  </tr>`).join('');
+}
+
+async function adminToggleAd(id, newStatus) {
+  await sb.from('ads').update({ status: newStatus }).eq('id', id);
+  showToast(newStatus==='active'?'Ad activated!':'Ad paused!', newStatus==='active'?'success':'info');
+  loadAdminAds(); loadUserAds();
+}
+async function adminDeleteAd(id) {
+  if (!confirm('Delete this ad?')) return;
+  await sb.from('ads').delete().eq('id', id);
+  showToast('Ad delete ho gaya','info'); loadAdminAds(); loadUserAds();
+}
+
+// ADD GAME MODAL
+function openAddGameModal() {
+  const existing = document.getElementById('add-game-modal');
+  if(existing) { existing.classList.add('open'); return; }
+  const modal = document.createElement('div');
+  modal.className = 'modal-bg';
+  modal.id = 'add-game-modal';
+  modal.innerHTML = `<div class="modal" style="border-radius:20px;margin:20px;max-width:calc(100% - 40px);">
+    <div class="modal-handle"></div>
+    <div class="modal-title">➕ Add New Game</div>
+    <div class="input-group"><div class="input-label">Game Name</div><input type="text" class="input" id="new-game-name" placeholder="e.g. Fruit Ninja"/></div>
+    <div class="input-group"><div class="input-label">Category</div><input type="text" class="input" id="new-game-cat" placeholder="e.g. Arcade"/></div>
+    <div class="input-group"><div class="input-label">Icon Emoji</div><input type="text" class="input" id="new-game-icon" placeholder="🍉" maxlength="4"/></div>
+    <div class="input-group"><div class="input-label">Description</div><input type="text" class="input" id="new-game-desc" placeholder="Slice fruits, avoid bombs!"/></div>
+    <div class="input-label" style="margin-bottom:8px;font-size:12px;color:var(--text2);">Levels (name, minutes, coins per level)</div>
+    <div id="game-levels-inputs">
+      <div style="display:grid;grid-template-columns:1fr 70px 70px;gap:6px;margin-bottom:6px;">
+        <input type="text" class="input lvl-name" placeholder="Level 1 name" style="font-size:12px;padding:8px;"/>
+        <input type="number" class="input lvl-mins" placeholder="Mins" style="font-size:12px;padding:8px;" value="2"/>
+        <input type="number" class="input lvl-coins" placeholder="🪙" style="font-size:12px;padding:8px;" value="10"/>
+      </div>
+    </div>
+    <button class="btn btn-outline" style="margin-bottom:12px;padding:8px 14px;font-size:12px;" onclick="addLevelRow()">+ Add Level</button>
+    <button class="btn btn-primary btn-full" onclick="adminSaveGame()">💾 Save Game</button>
+    <button class="btn btn-outline btn-full" style="margin-top:8px" onclick="document.getElementById('add-game-modal').classList.remove('open')">Cancel</button>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.classList.add('open');
+}
+
+function addLevelRow() {
+  const container = document.getElementById('game-levels-inputs');
+  const row = document.createElement('div');
+  row.style = 'display:grid;grid-template-columns:1fr 70px 70px;gap:6px;margin-bottom:6px;';
+  row.innerHTML = `<input type="text" class="input lvl-name" placeholder="Level name" style="font-size:12px;padding:8px;"/>
+    <input type="number" class="input lvl-mins" placeholder="Mins" style="font-size:12px;padding:8px;" value="5"/>
+    <input type="number" class="input lvl-coins" placeholder="🪙" style="font-size:12px;padding:8px;" value="20"/>`;
+  container.appendChild(row);
+}
+
+async function adminSaveGame() {
+  const name = document.getElementById('new-game-name').value.trim();
+  const category = document.getElementById('new-game-cat').value.trim();
+  const icon = document.getElementById('new-game-icon').value.trim() || '🎮';
+  const description = document.getElementById('new-game-desc').value.trim();
+  if (!name) { showToast('Game name required hai','error'); return; }
+  const names = document.querySelectorAll('#game-levels-inputs .lvl-name');
+  const minsList = document.querySelectorAll('#game-levels-inputs .lvl-mins');
+  const coinsList = document.querySelectorAll('#game-levels-inputs .lvl-coins');
+  const levels_json = [];
+  names.forEach((n,i) => {
+    levels_json.push({ name: n.value||('Level '+(i+1)), mins: parseInt(minsList[i]?.value)||2, coins: parseInt(coinsList[i]?.value)||10 });
+  });
+  const { error } = await sb.from('games').insert({ name, category, icon, description, levels_json, status:'active', created_at: new Date().toISOString() });
+  if (error) { showToast('Error: '+error.message,'error'); return; }
+  showToast('✅ Game add ho gaya!','success');
+  document.getElementById('add-game-modal').classList.remove('open');
+  loadAdminGames(); loadUserGames();
+}
+
+async function loadAdminGames() {
+  const { data } = await sb.from('games').select('*').order('created_at',{ascending:false});
+  const tbody = document.getElementById('admin-games-tbody');
+  if (!tbody) return;
+  if (!data || data.length===0) { tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text2);padding:20px;">Koi game nahi hai. + Add New Game se add karo.</td></tr>'; return; }
+  tbody.innerHTML = data.map(g => `<tr>
+    <td style="font-weight:500">${g.name}</td>
+    <td>${g.category||''}</td>
+    <td style="font-size:20px">${g.icon||'🎮'}</td>
+    <td>${(g.levels_json||[]).length}</td>
+    <td><span class="badge ${g.status==='active'?'badge-green':'badge-red'}">${g.status==='active'?'Active':'Paused'}</span></td>
+    <td><div class="table-actions">
+      ${g.status==='active'
+        ? `<button class="tbl-btn tbl-btn-red" onclick="adminToggleGame('${g.id}','paused')">⏸ Pause</button>`
+        : `<button class="tbl-btn tbl-btn-green" onclick="adminToggleGame('${g.id}','active')">▶ Activate</button>`}
+      <button class="tbl-btn tbl-btn-red" onclick="adminDeleteGame('${g.id}')">🗑 Delete</button>
+    </div></td>
+  </tr>`).join('');
+}
+
+async function adminToggleGame(id, s) { await sb.from('games').update({status:s}).eq('id',id); showToast(s==='active'?'Game activated!':'Game paused!',s==='active'?'success':'info'); loadAdminGames(); loadUserGames(); }
+async function adminDeleteGame(id) { if(!confirm('Delete this game?'))return; await sb.from('games').delete().eq('id',id); showToast('Game delete ho gaya','info'); loadAdminGames(); loadUserGames(); }
+
+// ADD SURVEY MODAL
+function openAddSurveyModal() {
+  const existing = document.getElementById('add-survey-modal');
+  if(existing) { existing.classList.add('open'); return; }
+  const modal = document.createElement('div');
+  modal.className = 'modal-bg';
+  modal.id = 'add-survey-modal';
+  modal.innerHTML = `<div class="modal" style="border-radius:20px;margin:20px;max-width:calc(100% - 40px);">
+    <div class="modal-handle"></div>
+    <div class="modal-title">➕ Add New Survey</div>
+    <div class="input-group"><div class="input-label">Survey Title</div><input type="text" class="input" id="new-sv-title" placeholder="e.g. Food Preferences Survey"/></div>
+    <div class="input-group"><div class="input-label">Category</div><input type="text" class="input" id="new-sv-cat" placeholder="e.g. Lifestyle"/></div>
+    <div class="input-group"><div class="input-label">Icon Emoji</div><input type="text" class="input" id="new-sv-icon" placeholder="📋" maxlength="4"/></div>
+    <div class="input-group"><div class="input-label">Description</div><input type="text" class="input" id="new-sv-desc" placeholder="Survey ke baare mein..."/></div>
+    <div class="input-group"><div class="input-label">Coins Reward</div><input type="number" class="input" id="new-sv-coins" value="50" placeholder="50"/></div>
+    <div class="input-group"><div class="input-label">Duration (minutes)</div><input type="number" class="input" id="new-sv-mins" value="5" placeholder="5"/></div>
+    <div class="input-label" style="margin-bottom:8px;font-size:12px;color:var(--text2);">Questions (simple text questions)</div>
+    <div id="survey-q-inputs">
+      <input type="text" class="input sv-q-input" placeholder="Question 1" style="margin-bottom:6px;font-size:12px;"/>
+    </div>
+    <button class="btn btn-outline" style="margin-bottom:12px;padding:8px 14px;font-size:12px;" onclick="addSurveyQRow()">+ Add Question</button>
+    <button class="btn btn-primary btn-full" onclick="adminSaveSurvey()">💾 Save Survey</button>
+    <button class="btn btn-outline btn-full" style="margin-top:8px" onclick="document.getElementById('add-survey-modal').classList.remove('open')">Cancel</button>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.classList.add('open');
+}
+
+function addSurveyQRow() {
+  const container = document.getElementById('survey-q-inputs');
+  const inp = document.createElement('input');
+  inp.type='text'; inp.className='input sv-q-input'; inp.style='margin-bottom:6px;font-size:12px;';
+  inp.placeholder = 'Question ' + (container.children.length+1);
+  container.appendChild(inp);
+}
+
+async function adminSaveSurvey() {
+  const title = document.getElementById('new-sv-title').value.trim();
+  const category = document.getElementById('new-sv-cat').value.trim();
+  const icon = document.getElementById('new-sv-icon').value.trim() || '📋';
+  const description = document.getElementById('new-sv-desc').value.trim();
+  const coins = parseInt(document.getElementById('new-sv-coins').value)||50;
+  const duration_min = parseInt(document.getElementById('new-sv-mins').value)||5;
+  if (!title) { showToast('Title required hai','error'); return; }
+  const qs = document.querySelectorAll('#survey-q-inputs .sv-q-input');
+  const questions_json = Array.from(qs).filter(q=>q.value.trim()).map(q=>({ type:'text', q: q.value.trim() }));
+  if (questions_json.length===0) questions_json.push({type:'text', q:'Share your feedback about '+title});
+  const { error } = await sb.from('surveys').insert({ title, category, icon, description, coins, duration_min, questions_json, status:'active', created_at: new Date().toISOString() });
+  if (error) { showToast('Error: '+error.message,'error'); return; }
+  showToast('✅ Survey add ho gaya!','success');
+  document.getElementById('add-survey-modal').classList.remove('open');
+  loadAdminSurveys(); loadUserSurveys();
+}
+
+async function loadAdminSurveys() {
+  const { data } = await sb.from('surveys').select('*').order('created_at',{ascending:false});
+  const tbody = document.getElementById('admin-surveys-tbody');
+  if (!tbody) return;
+  if (!data || data.length===0) { tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text2);padding:20px;">Koi survey nahi hai. + Add Survey se add karo.</td></tr>'; return; }
+  tbody.innerHTML = data.map(s => `<tr>
+    <td style="font-weight:500">${s.icon||'📋'} ${s.title}</td>
+    <td>${s.category||''}</td>
+    <td style="color:var(--gold)">${s.coins} 🪙</td>
+    <td><span class="badge ${s.status==='active'?'badge-green':'badge-red'}">${s.status==='active'?'Active':'Paused'}</span></td>
+    <td><div class="table-actions">
+      ${s.status==='active'
+        ? `<button class="tbl-btn tbl-btn-red" onclick="adminToggleSurvey('${s.id}','paused')">⏸ Pause</button>`
+        : `<button class="tbl-btn tbl-btn-green" onclick="adminToggleSurvey('${s.id}','active')">▶ Activate</button>`}
+      <button class="tbl-btn tbl-btn-red" onclick="adminDeleteSurvey('${s.id}')">🗑 Delete</button>
+    </div></td>
+  </tr>`).join('');
+}
+
+async function adminToggleSurvey(id, s) { await sb.from('surveys').update({status:s}).eq('id',id); showToast(s==='active'?'Survey activated!':'Survey paused!',s==='active'?'success':'info'); loadAdminSurveys(); loadUserSurveys(); }
+async function adminDeleteSurvey(id) { if(!confirm('Delete this survey?'))return; await sb.from('surveys').delete().eq('id',id); showToast('Survey delete ho gaya','info'); loadAdminSurveys(); loadUserSurveys(); }
+
+// ── APK MANAGER ──
+async function saveApkLink() {
+  const url = document.getElementById('apk-url-input').value.trim();
+  const version = document.getElementById('apk-version-input').value.trim();
+  const notes = document.getElementById('apk-notes-input').value.trim();
+  if (!url) { showToast('APK URL required hai','error'); return; }
+  await sb.from('app_settings').upsert({ key:'apk_url', value: JSON.stringify({url, version, notes, updated_at: new Date().toISOString()}) }, {onConflict:'key'});
+  showToast('✅ APK link save ho gaya!','success');
+  loadApkInfo();
+}
+
+async function loadApkInfo() {
+  const { data } = await sb.from('app_settings').select('value').eq('key','apk_url').single();
+  if (!data) return;
+  try {
+    const info = JSON.parse(data.value);
+    const prev = document.getElementById('apk-preview-section');
+    if (prev) {
+      prev.style.display='block';
+      document.getElementById('apk-preview-version').textContent = 'Version: ' + (info.version||'1.0.0');
+      document.getElementById('apk-preview-notes').textContent = info.notes||'';
+      const lnk = document.getElementById('apk-preview-link');
+      lnk.textContent = info.url; lnk.href = info.url;
+    }
+    const inp = document.getElementById('apk-url-input');
+    if(inp) inp.value = info.url;
+    const vinp = document.getElementById('apk-version-input');
+    if(vinp) vinp.value = info.version||'';
+    const ninp = document.getElementById('apk-notes-input');
+    if(ninp) ninp.value = info.notes||'';
+  } catch(e){}
+}
+
+// User APK download button (shown in home page / profile)
+async function checkApkAvailable() {
+  const { data } = await sb.from('app_settings').select('value').eq('key','apk_url').single();
+  if (!data) return;
+  try {
+    const info = JSON.parse(data.value);
+    if (!info.url) return;
+    // Add download button in profile page
+    const profileMenu = document.querySelector('.profile-menu');
+    if (profileMenu && !document.getElementById('apk-download-item')) {
+      const item = document.createElement('div');
+      item.className = 'menu-item';
+      item.id = 'apk-download-item';
+      item.innerHTML = `<span class="menu-icon">📦</span><span class="menu-label">Download EarnKaro App</span><span class="menu-arrow">⬇</span>`;
+      item.onclick = () => { window.open(info.url,'_blank'); showToast('📦 APK download shuru ho gaya!','success'); };
+      profileMenu.insertBefore(item, profileMenu.firstChild);
+    }
+    // Also add banner in home page
+    if (!document.getElementById('apk-home-banner')) {
+      const banner = document.createElement('div');
+      banner.id = 'apk-home-banner';
+      banner.style = 'margin:12px 16px;background:linear-gradient(135deg,rgba(0,229,160,.15),rgba(0,153,255,.15));border:1px solid rgba(0,229,160,.3);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;';
+      banner.innerHTML = `<span style="font-size:32px;">📦</span><div style="flex:1"><div style="font-family:var(--font-head);font-size:14px;font-weight:700;">EarnKaro App Download</div><div style="font-size:11px;color:var(--text2);">Tap to download v${info.version||'1.0.0'}</div></div><span style="font-size:20px;color:var(--accent);">⬇</span>`;
+      banner.onclick = () => { window.open(info.url,'_blank'); showToast('📦 APK download shuru ho gaya!','success'); };
+      const homeHero = document.querySelector('#page-home .hero-section');
+      if(homeHero) homeHero.parentNode.insertBefore(banner, homeHero.nextSibling);
+    }
+  } catch(e){}
+}
+
+async function adminApproveWd(id, btn) {
+  await sb.from('withdrawals').update({ status: 'approved' }).eq('id', id);
+  const row = btn.closest('tr');
+  row.querySelector('.badge').className = 'badge badge-green';
+  row.querySelector('.badge').textContent = '✅ Approved';
+  btn.closest('.table-actions').innerHTML = '<button class="tbl-btn tbl-btn-blue">View</button>';
+  showToast('Withdrawal approved!', 'success');
+}
+
+async function adminRejectWd(id, btn) {
+  await sb.from('withdrawals').update({ status: 'rejected' }).eq('id', id);
+  const row = btn.closest('tr');
+  row.querySelector('.badge').className = 'badge badge-red';
+  row.querySelector('.badge').textContent = '❌ Rejected';
+  btn.closest('.table-actions').innerHTML = '<button class="tbl-btn tbl-btn-blue">View</button>';
+  showToast('Withdrawal rejected.', 'info');
+}
+
+// Check session on load
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session && session.user) {
+    currentUser = session.user;
+    isLoggedIn = true;
+    await loadOrCreateProfile(currentUser);
+    showUserApp();
+  }
+  // Hide loading screen
+  const ls = document.getElementById('loading-screen');
+  if(ls) ls.style.display = 'none';
+})();
+
+// ── COINS ──
+function updateCoinsDisplay(val){
+  coins = val;
+  const formatted = val.toLocaleString('en-IN');
+  const hc=document.getElementById('header-coins');
+  const hm=document.getElementById('home-coins');
+  const wc=document.getElementById('wallet-coins-display');
+  const wb=document.getElementById('withdraw-balance');
+  if(hc) hc.textContent=formatted;
+  if(hm) hm.textContent=formatted;
+  if(wc) wc.textContent=formatted;
+  if(wb) wb.textContent=formatted+' 🪙 ≈ ₹'+(val*0.01).toFixed(2);
+}
+
+function animateCoins(x, y, text='+15'){
+  const el = document.createElement('div');
+  el.className='coin-float';
+  el.textContent = text + ' 🪙';
+  el.style.left = (x-40)+'px';
+  el.style.top = (y-30)+'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 1600);
+}
+
+// ── AD PLAYER ──
+function openAdPlayer(card){
+  const emoji = card.dataset.emoji;
+  const brand = card.dataset.brand;
+  const title = card.dataset.title;
+  const coinsR = parseInt(card.dataset.coins);
+  const dur = parseInt(card.dataset.duration);
+
+  document.getElementById('ad-screen-emoji').textContent = emoji;
+  document.getElementById('ad-modal-brand').textContent = brand;
+  document.getElementById('ad-modal-title').textContent = title;
+  document.getElementById('ad-modal-coins').textContent = coinsR + ' coins';
+  document.getElementById('ad-timer-disp').textContent = dur+'s';
+  document.getElementById('ad-progress').style.width = '0%';
+  document.getElementById('ad-modal').classList.add('open');
+
+  adDuration = dur;
+  adElapsed = 0;
+  if(adTimer) clearInterval(adTimer);
+  adTimer = setInterval(()=>{
+    adElapsed++;
+    const pct = (adElapsed/adDuration)*100;
+    document.getElementById('ad-progress').style.width = pct+'%';
+    document.getElementById('ad-timer-disp').textContent = (adDuration-adElapsed)+'s';
+    if(adElapsed >= adDuration){
+      clearInterval(adTimer);
+      closeAdModal();
+      const newCoins = coins + coinsR;
+      syncCoins(newCoins);
+      animateCoins(window.innerWidth/2, 100, '+'+coinsR);
+      showToast('🪙 +'+coinsR+' coins earned!','success');
+      logActivity('ad', 'Watched '+brand+' Ad', coinsR);
+      loadRecentActivity();
+    }
+  },1000);
+}
+
+function closeAdModal(){
+  if(adTimer){clearInterval(adTimer);adTimer=null;}
+  document.getElementById('ad-modal').classList.remove('open');
+}
+
+// ── GAMES ──
+function openGameModal(name, icon, cat, desc, levels){
+  document.getElementById('game-modal-title').textContent = name;
+  document.getElementById('game-modal-icon').textContent = icon;
+  document.getElementById('game-modal-desc').textContent = desc;
+  const container = document.getElementById('game-levels-list');
+  container.innerHTML = '';
+  selectedGameLevel = null;
+  levels.forEach((l,i)=>{
+    const parts = l.split('→');
+    const levelName = parts[0].trim();
+    const rewardPart = parts[1]?parts[1].trim():'';
+    const coinMatch = rewardPart.match(/(\d+)/);
+    const coinsVal = coinMatch?parseInt(coinMatch[1]):10;
+    const minMatch = levelName.match(/(\d+)\s*min/);
+    const mins = minMatch?parseInt(minMatch[1]):2;
+    const div = document.createElement('div');
+    div.className='level-item';
+    div.style.cursor='pointer';
+    div.innerHTML=`<div class="level-num">${i+1}</div><div class="level-info"><div class="level-name">${levelName}</div><div class="level-time">${rewardPart}</div></div><div class="level-coins">🪙 ${coinsVal}</div>`;
+    div.onclick=()=>{
+      document.querySelectorAll('.level-item').forEach(x=>x.style.border='');
+      div.style.border='1px solid var(--accent)';
+      div.style.borderRadius='12px';
+      selectedGameLevel={name:levelName,coins:coinsVal,mins:mins,icon};
+      document.getElementById('play-game-btn').textContent=`▶ Play Level ${i+1} – Earn ${coinsVal} coins`;
+      window.currentGameName = name;
+    };
+    container.appendChild(div);
+  });
+  document.getElementById('game-modal').classList.add('open');
+}
+
+function startGame(){
+  if(!selectedGameLevel){showToast('Please select a level first','error');return;}
+  closeModal('game-modal');
+  const {name,coins:c,mins,icon} = selectedGameLevel;
+  gameRequired = mins*60;
+  gameElapsed = 0;
+  gameCoins = c;
+  document.getElementById('gplay-name').textContent = window.currentGameName || 'Game';
+  document.getElementById('gplay-icon').textContent = icon;
+  document.getElementById('gplay-coins').textContent = c+' coins';
+  document.getElementById('gplay-progress').style.width='0%';
+  document.getElementById('game-play-modal').classList.add('open');
+  updateGameTimer();
+  if(gameTimer) clearInterval(gameTimer);
+  gameTimer = setInterval(()=>{
+    gameElapsed++;
+    const pct = Math.min((gameElapsed/gameRequired)*100,100);
+    document.getElementById('gplay-progress').style.width=pct+'%';
+    updateGameTimer();
+    if(gameElapsed >= gameRequired){
+      clearInterval(gameTimer);
+      closeModal('game-play-modal');
+      syncCoins(coins+gameCoins);
+      animateCoins(window.innerWidth/2,100,'+'+gameCoins);
+      showToast('🎮 Level complete! +'+gameCoins+' coins!','success');
+      logActivity('game', 'Played '+(window.currentGameName||'Game'), gameCoins);
+      loadRecentActivity();
+    }
+  },1000);
+}
+
+function updateGameTimer(){
+  const rem = Math.max(gameRequired-gameElapsed,0);
+  const m=Math.floor(rem/60);
+  const s=rem%60;
+  document.getElementById('gplay-timer').textContent = m+':'+(s<10?'0':'')+s;
+}
+
+// ── SURVEYS ──
+function openSurvey(type){
+  const data = SURVEYS[type];
+  if(!data) return;
+  surveyData = data;
+  surveyQIndex = 0;
+  document.getElementById('survey-modal-title').textContent = data.title + ' 📋';
+  renderSurveyQ();
+  document.getElementById('survey-modal').classList.add('open');
+}
+
+function renderSurveyQ(){
+  const q = surveyData.questions[surveyQIndex];
+  const total = surveyData.questions.length;
+  document.getElementById('survey-progress-text').textContent = `Q ${surveyQIndex+1} of ${total}`;
+  document.getElementById('survey-next-btn').textContent = surveyQIndex===total-1?'Submit ✓':'Next →';
+  const container = document.getElementById('survey-questions-container');
+  let html = `<div class="question-card"><div class="question-text">${q.q}</div>`;
+  if(q.type==='mcq'){
+    q.opts.forEach((o,i)=>{
+      html+=`<div class="option-item" onclick="selectOption(this)"><div class="option-radio"><div class="option-radio-inner"></div></div><span>${o}</span></div>`;
+    });
+  } else if(q.type==='rating'){
+    html+=`<div class="rating-row">`;
+    for(let i=1;i<=5;i++){
+      html+=`<button class="rating-btn" onclick="selectRating(this)">${i}</button>`;
+    }
+    html+=`</div>`;
+  } else {
+    html+=`<textarea class="input" placeholder="Type your answer here..." rows="3" style="resize:none;"></textarea>`;
+  }
+  html+=`</div>`;
+  container.innerHTML=html;
+}
+
+function selectOption(el){
+  document.querySelectorAll('#survey-questions-container .option-item').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function selectRating(btn){
+  document.querySelectorAll('.rating-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function nextSurveyQ(){
+  const total = surveyData.questions.length;
+  if(surveyQIndex < total-1){
+    surveyQIndex++;
+    renderSurveyQ();
+  } else {
+    closeModal('survey-modal');
+    syncCoins(coins+surveyData.coins);
+    animateCoins(window.innerWidth/2,100,'+'+surveyData.coins);
+    showToast('📋 Survey completed! +'+surveyData.coins+' coins!','success');
+    logActivity('survey', 'Completed '+surveyData.title, surveyData.coins);
+    loadRecentActivity();
+  }
+}
+
+// ── WITHDRAWAL ──
+function openWithdrawModal(){
+  document.getElementById('withdraw-modal').classList.add('open');
+}
+
+function selectMethod(el, method){
+  document.querySelectorAll('.withdraw-method').forEach(m=>m.classList.remove('active'));
+  el.classList.add('active');
+  currentMethod = method;
+  document.getElementById('method-fields-upi').style.display = method==='upi'?'block':'none';
+  document.getElementById('method-fields-bank').style.display = method==='bank'?'block':'none';
+  document.getElementById('method-fields-redeem').style.display = method==='redeem'?'block':'none';
+}
+
+async function submitWithdrawal(){
+  if(!currentUser){showToast('Please login first','error');return;}
+  const amount = parseInt(document.getElementById('withdraw-amount').value)||0;
+  if(amount<1000){showToast('Minimum withdrawal is 1000 coins','error');return;}
+  if(amount>coins){showToast('Insufficient coins','error');return;}
+
+  let detail = '';
+  if(currentMethod==='upi'){
+    detail = document.querySelector('#method-fields-upi input')?.value || '';
+  } else if(currentMethod==='bank'){
+    const acc = document.querySelector('#method-fields-bank input:nth-child(1)')?.value || '';
+    const ifsc = document.querySelector('#method-fields-bank input:nth-child(2)')?.value || '';
+    detail = acc + ' | ' + ifsc;
+  }
+
+  const newCoins = coins - amount;
+  await sb.from('profiles').update({ coins: newCoins }).eq('id', currentUser.id);
+  await sb.from('withdrawals').insert({
+    user_id: currentUser.id,
+    coins: amount,
+    method: currentMethod,
+    detail: detail,
+    status: 'pending',
+    created_at: new Date().toISOString()
+  });
+  await logActivity('withdrawal', 'Withdrawal - ' + currentMethod.toUpperCase(), -amount);
+  updateCoinsDisplay(newCoins);
+  closeModal('withdraw-modal');
+  showToast('💸 Withdrawal request submitted! ₹'+(amount*0.01).toFixed(2),'success');
+  loadRecentActivity();
+}
+
+// ── MISC ──
+function closeModal(id){
+  document.getElementById(id).classList.remove('open');
+}
+function setFilter(el,cat){
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+}
+function switchWalletTab(tab,type){
+  document.querySelectorAll('.wtab').forEach(t=>t.classList.remove('active'));
+  tab.classList.add('active');
+  document.getElementById('tab-earning').style.display=type==='earning'?'block':'none';
+  document.getElementById('tab-withdrawal').style.display=type==='withdrawal'?'block':'none';
+}
+async function claimDaily(){
+  if(!currentUser){ showToast('Please login first','error'); return; }
+  const { data: profile } = await sb.from('profiles').select('last_claim').eq('id', currentUser.id).single();
+  const now = new Date();
+  if(profile && profile.last_claim){
+    const last = new Date(profile.last_claim);
+    const diff = now - last;
+    if(diff < 86400000){
+      const remaining = 86400000 - diff;
+      const hrs = Math.floor(remaining/3600000);
+      const mins = Math.floor((remaining%3600000)/60000);
+      showToast('⏰ Aaj claim ho gaya! '+hrs+'h '+mins+'m baad aayein','error');
+      return;
+    }
+  }
+  const newCoins = coins + 10;
+  await sb.from('profiles').update({ coins: newCoins, last_claim: now.toISOString() }).eq('id', currentUser.id);
+  await logActivity('daily', 'Daily Bonus Claimed', 10);
+  updateCoinsDisplay(newCoins);
+  animateCoins(window.innerWidth/2, 200, '+10');
+  showToast('🔥 Daily bonus claimed! +10 coins','success');
+  updateClaimButton();
+}
+
+async function updateClaimButton(){
+  const btn = document.querySelector('.streak-claim');
+  if(!btn) return;
+  if(!currentUser){ btn.textContent='Claim 🔥'; return; }
+  const { data: profile } = await sb.from('profiles').select('last_claim').eq('id', currentUser.id).single();
+  const now = Date.now();
+  if(profile && profile.last_claim){
+    const diff = now - new Date(profile.last_claim).getTime();
+    if(diff < 86400000){
+      const remaining = 86400000 - diff;
+      const hrs = Math.floor(remaining/3600000);
+      const mins = Math.floor((remaining%3600000)/60000);
+      btn.textContent = hrs+'h '+mins+'m';
+      btn.style.opacity='0.5';
+      btn.style.cursor='not-allowed';
+      return;
+    }
+  }
+  btn.textContent = 'Claim 🔥';
+  btn.style.opacity='1';
+  btn.style.cursor='pointer';
+}
+function copyReferral(){
+  showToast('📋 Referral code copied!','success');
+}
+
+// ── TOAST ──
+function showToast(msg, type='info'){
+  const c=document.getElementById('toast-container');
+  const t=document.createElement('div');
+  t.className='toast '+type;
+  const icon={success:'✅',error:'❌',info:'ℹ️'}[type]||'ℹ️';
+  t.innerHTML=`<span>${icon}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(()=>{t.style.animation='slideIn .3s ease reverse';setTimeout(()=>t.remove(),300);},3000);
+}
+
+// ── ADMIN ──
+function showAdminSection(id, navEl){
+  document.querySelectorAll('.admin-page').forEach(p=>p.classList.remove('active'));
+
+  // APK section may need to be injected first
+  if(id==='apk-mgmt' && !document.getElementById('admin-apk-mgmt')){
+    const tpl = document.getElementById('apk-mgmt-tpl');
+    const main = document.querySelector('.admin-main');
+    main.appendChild(tpl.content.cloneNode(true));
+    loadApkInfo();
+  }
+
+  const target = document.getElementById('admin-'+id);
+  if(target) target.classList.add('active');
+
+  if(navEl){
+    document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+    navEl.classList.add('active');
+  }
+  const titles={
+    dashboard:'Dashboard',users:'User Management',
+    'ads-mgmt':'Ads Management','games-mgmt':'Games Management',
+    'surveys-mgmt':'Surveys Management','withdrawals-mgmt':'Withdrawals',
+    'coins-control':'Coins Control','app-settings':'App Settings',
+    'apk-mgmt':'APK Manager'
+  };
+  document.getElementById('admin-page-title').textContent = titles[id]||id;
+  if(window.innerWidth<768) closeSidebar();
+}
+
+function toggleSidebar(){
+  const sb=document.getElementById('admin-sidebar');
+  const ov=document.getElementById('sidebar-overlay');
+  if(window.innerWidth<768){
+    sb.classList.toggle('mobile-open');
+    ov.classList.toggle('show');
+  } else {
+    sb.classList.toggle('collapsed');
+  }
+}
+function closeSidebar(){
+  document.getElementById('admin-sidebar').classList.remove('mobile-open');
+  document.getElementById('sidebar-overlay').classList.remove('show');
+}
+function toggleSwitch(el){el.classList.toggle('on');}
+
+// Legacy stubs (replaced by adminApproveWd / adminRejectWd above)
+function approveWithdrawal(btn){ adminApproveWd(null, btn); }
+function rejectWithdrawal(btn){ adminRejectWd(null, btn); }
+function adminAddCoins(name){ showToast('Use the Add button in Users tab','info'); }
+
+// ── CHARTS ──
+function buildCharts(){
+  const userVals=[23,45,38,60,52,70,84];
+  const coinVals=[1200,2100,1800,2800,2400,3200,3900];
+  renderChart('chart-users', userVals, 'var(--accent)');
+  renderChart('chart-coins', coinVals, 'var(--accent2)');
+}
+function renderChart(id, vals, color){
+  const container=document.getElementById(id);
+  if(!container) return;
+  const max=Math.max(...vals);
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  container.innerHTML='';
+  container.style.flexDirection='column';
+  container.style.gap='0';
+  container.style.padding='0';
+  container.style.height='180px';
+  const barsRow=document.createElement('div');
+  barsRow.style=`display:flex;align-items:flex-end;gap:6px;flex:1;padding:12px 8px 4px;`;
+  vals.forEach((v,i)=>{
+    const wrap=document.createElement('div');
+    wrap.style=`flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;`;
+    const bar=document.createElement('div');
+    const pct=Math.round((v/max)*100);
+    bar.style=`width:100%;height:${pct}%;border-radius:4px 4px 0 0;background:${color};opacity:.85;min-height:4px;transition:.5s`;
+    const label=document.createElement('div');
+    label.style=`font-size:9px;color:var(--text3);white-space:nowrap`;
+    label.textContent=days[i];
+    wrap.appendChild(bar);
+    wrap.appendChild(label);
+    barsRow.appendChild(wrap);
+    setTimeout(()=>{bar.style.opacity='1';},100*i);
+  });
+  container.appendChild(barsRow);
+}
+
+// Close modals on backdrop click
+document.querySelectorAll('.modal-bg').forEach(bg=>{
+  bg.addEventListener('click',e=>{
+    if(e.target===bg){
+      bg.classList.remove('open');
+      if(adTimer){clearInterval(adTimer);adTimer=null;}
+      if(gameTimer){clearInterval(gameTimer);gameTimer=null;}
+    }
+  });
+});
+</script>
+</body>
+</html>
